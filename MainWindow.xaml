@@ -79,22 +79,133 @@
 
             <!-- Left Sidebar -->
             <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Background="#FF0D1117">
-                <StackPanel VerticalAlignment="Center" Margin="8">
-                    <TextBlock Text="CONTROLS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
-                    <TextBlock Text="W/A/S/D" Foreground="#FF888888" FontSize="14"/>
-                    <TextBlock Text="Move Cube" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
-                    <TextBlock Text="Space / B" Foreground="#FF888888" FontSize="14"/>
-                    <TextBlock Text="Dash Action" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
-                    <TextBlock Text="F3" Foreground="#FF888888" FontSize="14"/>
-                    <TextBlock Text="Collision Debug" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
-                    <TextBlock Text="ESC" Foreground="#FF888888" FontSize="14"/>
-                    <TextBlock Text="Options Menu" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
-                    <Separator Background="#FF222222" Margin="0,5"/>
-                    <TextBlock x:Name="InputStatusText" Text="Input: Keyboard" 
-                               Foreground="#FF00FF88" FontSize="14" Margin="0,8,0,0"/>
-                    <TextBlock x:Name="CubePositionText" Text="Position: 0, 0" 
-                               Foreground="#FF666666" FontSize="12" Margin="0,4,0,0"/>
-                </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel VerticalAlignment="Top" Margin="8">
+                        <TextBlock Text="CONTROLS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
+                        <TextBlock Text="W/A/S/D" Foreground="#FF888888" FontSize="14"/>
+                        <TextBlock Text="Move Cube" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
+                        <TextBlock Text="Space / B" Foreground="#FF888888" FontSize="14"/>
+                        <TextBlock Text="Dash Action" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
+                        <TextBlock Text="F3" Foreground="#FF888888" FontSize="14"/>
+                        <TextBlock Text="Collision Debug" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
+                        <TextBlock Text="ESC" Foreground="#FF888888" FontSize="14"/>
+                        <TextBlock Text="Options Menu" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
+                        <Separator Background="#FF222222" Margin="0,5"/>
+                        <TextBlock x:Name="InputStatusText" Text="Input: Keyboard" 
+                                   Foreground="#FF00FF88" FontSize="14" Margin="0,8,0,0"/>
+                        <TextBlock x:Name="CubePositionText" Text="Position: 0, 0" 
+                                   Foreground="#FF666666" FontSize="12" Margin="0,4,0,0"/>
+
+                        <Separator Background="#FF222222" Margin="0,8"/>
+
+                        <!-- Player Stats -->
+                        <TextBlock Text="PLAYER STATS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,6,0,8"/>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="HP" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatHP" Grid.Column="1" Text="100.00%" Foreground="#FF00FF88" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Defence" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatDefence" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Attack" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatAttack" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Atk Speed" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatAttackSpeed" Grid.Column="1" Text="1.00x" Foreground="#FF00FF88" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Resistance" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatResistance" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Dodge" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatDodge" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Crit Chance" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatCritChance" Grid.Column="1" Text="0.00%" Foreground="#FFFFD700" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Crit Damage" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatCritDamage" Grid.Column="1" Text="150.00%" Foreground="#FFFFD700" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Main Dmg" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatMainDmg" Grid.Column="1" Text="0.00%" Foreground="#FFFF6B6B" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Skill Dmg" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatSkillDmg" Grid.Column="1" Text="0.00%" Foreground="#FF9B59B6" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Parry Dmg" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatParryDmg" Grid.Column="1" Text="0.00%" Foreground="#FF00D4FF" FontSize="14"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Counter Dmg" Foreground="#FF888888" FontSize="14"/>
+                            <TextBlock x:Name="StatCounterDmg" Grid.Column="1" Text="0.00%" Foreground="#FFFF8C00" FontSize="14"/>
+                        </Grid>
+
+                        <Separator Background="#FF222222" Margin="0,8"/>
+
+                        <!-- AI Actions -->
+                        <TextBlock Text="AI ACTIONS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,6,0,8"/>
+                        <TextBlock x:Name="PlayerDashText" Text="Dash: ON" Foreground="#FF00FF88" FontSize="14" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="EnemyDashText" Text="Enemy Dash: ON" Foreground="#FFFF6B6B" FontSize="14" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="GreenDashText" Text="NPC Dash: ON" Foreground="#FF00FF88" FontSize="14"/>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
 
             <!-- Game Screen -->

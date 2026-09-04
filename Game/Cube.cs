@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using SimpleWPFGame.Config;
 using SimpleWPFGame.Input;
 using SimpleWPFGame.Logging;
 using SimpleWPFGame.Settings;
@@ -23,6 +24,10 @@ public class Cube : GameObject
 
     public bool IsDashing { get; private set; }
     public double DashCooldownRemaining { get; private set; }
+
+    // RPG Stats
+    public CharacterStats Stats { get; set; } = new();
+    public CharacterActionToggles Actions { get; set; } = new();
 
     private Vector _dashDirection;
     private double _dashTimer;
@@ -92,6 +97,7 @@ public class Cube : GameObject
 
     private bool TryStartDash()
     {
+        if (!Actions.DashEnabled) return false;
         if (DashCooldownRemaining > 0) return false;
 
         var input = InputManager.Instance;

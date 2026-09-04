@@ -21,6 +21,9 @@ public class CharacterData
     public double DashRotationSpeed { get; set; } = 2160;
     public double DashCooldown { get; set; } = 0.8;
     public double DashDuration { get; set; } = 0.12;
+
+    public CharacterStats Stats { get; set; } = new();
+    public CharacterActionToggles Actions { get; set; } = new();
 }
 
 public static class CharSettings
@@ -36,6 +39,27 @@ public static class CharSettings
 
         foreach (var sectionName in _ini.GetSectionNames())
         {
+            var stats = new CharacterStats
+            {
+                HP = _ini.GetFloat(sectionName, "HP", 1.00f),
+                Defence = _ini.GetFloat(sectionName, "Defence", 0.00f),
+                Attack = _ini.GetFloat(sectionName, "Attack", 0.00f),
+                AttackSpeed = _ini.GetFloat(sectionName, "AttackSpeed", 1.00f),
+                Resistance = _ini.GetFloat(sectionName, "Resistance", 0.00f),
+                DodgeChance = _ini.GetFloat(sectionName, "DodgeChance", 0.00f),
+                CriticalChance = _ini.GetFloat(sectionName, "CriticalChance", 0.00f),
+                CriticalDamage = _ini.GetFloat(sectionName, "CriticalDamage", 1.50f),
+                MainDamage = _ini.GetFloat(sectionName, "MainDamage", 0.00f),
+                SkillDamage = _ini.GetFloat(sectionName, "SkillDamage", 0.00f),
+                ParryDamage = _ini.GetFloat(sectionName, "ParryDamage", 0.00f),
+                CounterDamage = _ini.GetFloat(sectionName, "CounterDamage", 0.00f)
+            };
+
+            var actions = new CharacterActionToggles
+            {
+                DashEnabled = _ini.GetBool(sectionName, "DashEnabled", true)
+            };
+
             var data = new CharacterData
             {
                 Name = _ini.GetString(sectionName, "Name", sectionName),
@@ -53,11 +77,13 @@ public static class CharSettings
                 DashDistance = _ini.GetDouble(sectionName, "DashDistance", 50),
                 DashRotationSpeed = _ini.GetDouble(sectionName, "DashRotationSpeed", 2160),
                 DashCooldown = _ini.GetDouble(sectionName, "DashCooldown", 0.8),
-                DashDuration = _ini.GetDouble(sectionName, "DashDuration", 0.12)
+                DashDuration = _ini.GetDouble(sectionName, "DashDuration", 0.12),
+                Stats = stats,
+                Actions = actions
             };
 
             _characters[sectionName] = data;
-            Logger.Log($"Loaded character: {sectionName} ({data.Name}) at ({data.StartX},{data.StartY})", LogLevel.Debug);
+            Logger.Log($"Loaded character: {sectionName} ({data.Name}) at ({data.StartX},{data.StartY}) HP={stats.HP:F2} ATK={stats.Attack:F2}", LogLevel.Debug);
         }
 
         Logger.Log($"CharSettings loaded: {_characters.Count} characters from {filePath}", LogLevel.Info);

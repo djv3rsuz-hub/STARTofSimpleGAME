@@ -134,7 +134,9 @@ public partial class MainWindow : Window
                     DashDistance = playerData.DashDistance,
                     DashRotationSpeed = playerData.DashRotationSpeed,
                     DashCooldown = playerData.DashCooldown,
-                    DashDuration = playerData.DashDuration
+                    DashDuration = playerData.DashDuration,
+                    Stats = playerData.Stats,
+                    Actions = playerData.Actions
                 };
                 engine.RegisterObject(_blueCube);
                 Logger.Log($"Player: {playerData.Name} | Speed={playerData.MoveSpeed} Accel={playerData.AccelerationSpeed}", LogLevel.Info);
@@ -149,7 +151,13 @@ public partial class MainWindow : Window
                 {
                     MoveSpeed = enemyData.MoveSpeed,
                     AccelerationSpeed = enemyData.AccelerationSpeed,
-                    DecelerationSpeed = enemyData.DecelerationSpeed
+                    DecelerationSpeed = enemyData.DecelerationSpeed,
+                    DashDistance = enemyData.DashDistance,
+                    DashRotationSpeed = enemyData.DashRotationSpeed,
+                    DashCooldown = enemyData.DashCooldown,
+                    DashDuration = enemyData.DashDuration,
+                    Stats = enemyData.Stats,
+                    Actions = enemyData.Actions
                 };
                 engine.RegisterObject(_redCube);
             }
@@ -163,7 +171,13 @@ public partial class MainWindow : Window
                 {
                     MoveSpeed = greenData.MoveSpeed,
                     AccelerationSpeed = greenData.AccelerationSpeed,
-                    DecelerationSpeed = greenData.DecelerationSpeed
+                    DecelerationSpeed = greenData.DecelerationSpeed,
+                    DashDistance = greenData.DashDistance,
+                    DashRotationSpeed = greenData.DashRotationSpeed,
+                    DashCooldown = greenData.DashCooldown,
+                    DashDuration = greenData.DashDuration,
+                    Stats = greenData.Stats,
+                    Actions = greenData.Actions
                 };
                 engine.RegisterObject(_greenCube);
             }
@@ -240,6 +254,32 @@ public partial class MainWindow : Window
             // Cube position
             if (_blueCube != null)
                 CubePositionText.Text = $"Position: {(int)_blueCube.Position.X}, {(int)_blueCube.Position.Y}";
+
+            // Player stats
+            if (_blueCube != null)
+            {
+                var s = _blueCube.Stats;
+                StatHP.Text = $"{s.HP * 100:F2}%";
+                StatDefence.Text = $"{s.Defence * 100:F2}%";
+                StatAttack.Text = $"{s.Attack * 100:F2}%";
+                StatAttackSpeed.Text = $"{s.AttackSpeed:F2}x";
+                StatResistance.Text = $"{s.Resistance * 100:F2}%";
+                StatDodge.Text = $"{s.DodgeChance * 100:F2}%";
+                StatCritChance.Text = $"{s.CriticalChance * 100:F2}%";
+                StatCritDamage.Text = $"{s.CriticalDamage * 100:F2}%";
+                StatMainDmg.Text = $"{s.MainDamage * 100:F2}%";
+                StatSkillDmg.Text = $"{s.SkillDamage * 100:F2}%";
+                StatParryDmg.Text = $"{s.ParryDamage * 100:F2}%";
+                StatCounterDmg.Text = $"{s.CounterDamage * 100:F2}%";
+            }
+
+            // AI action states
+            if (_blueCube != null)
+                PlayerDashText.Text = $"Dash: {(_blueCube.Actions.DashEnabled ? "ON" : "OFF")}";
+            if (_redCube != null)
+                EnemyDashText.Text = $"Enemy Dash: {(_redCube.Actions.DashEnabled ? "ON" : "OFF")}";
+            if (_greenCube != null)
+                GreenDashText.Text = $"NPC Dash: {(_greenCube.Actions.DashEnabled ? "ON" : "OFF")}";
 
             // Time
             var elapsed = TimeSpan.FromSeconds(engine.ElapsedTime);
