@@ -22,8 +22,8 @@ public class Cube : GameObject
     public double DashCooldown { get; set; } = 0.8;
     public double DashDuration { get; set; } = 0.12;
 
-    public bool IsDashing { get; private set; }
-    public double DashCooldownRemaining { get; private set; }
+    public bool IsDashing { get; internal set; }
+    public double DashCooldownRemaining { get; internal set; }
 
     // RPG Stats
     public CharacterStats Stats { get; set; } = new();

@@ -8,6 +8,7 @@ using SimpleWPFGame.Input;
 using SimpleWPFGame.Logging;
 using SimpleWPFGame.Settings;
 using SimpleWPFGame.UI;
+using SimpleWPFGame.SaveSystem;
 
 namespace SimpleWPFGame;
 
@@ -519,6 +520,12 @@ public partial class MainWindow : Window
             case System.Windows.Input.Key.F3:
                 ToggleCollision();
                 break;
+            case System.Windows.Input.Key.F5:
+                QuickSave();
+                break;
+            case System.Windows.Input.Key.F9:
+                QuickLoad();
+                break;
         }
     }
 
@@ -534,6 +541,35 @@ public partial class MainWindow : Window
         CollisionDebugText.Foreground = settings.ShowCollision ? Brushes.LimeGreen : Brushes.Gray;
         ConsoleWrite(settings.ShowCollision ? "Collision debug: ON" : "Collision debug: OFF", "#FF00FF88");
         Logger.Log($"Collision debug: {settings.ShowCollision}", LogLevel.Info);
+    }
+
+    private void QuickSave()
+    {
+        var sm = SaveManager.Instance;
+        if (sm.Save(1, _blueCube, _redCube, _greenCube, "Quick Save"))
+        {
+            ConsoleWrite("Quick Saved [F5] -> Slot 1", "#FF00FF88");
+            StatusText.Text = "Game saved";
+        }
+        else
+        {
+            ConsoleWrite("Save failed!", "#FFFF4444");
+        }
+    }
+
+    private void QuickLoad()
+    {
+        var sm = SaveManager.Instance;
+        var data = sm.Load(1);
+        if (data != null && sm.ApplyLoadedState(data, _blueCube, _redCube, _greenCube))
+        {
+            ConsoleWrite("Quick Loaded [F9] <- Slot 1", "#FF00FF88");
+            StatusText.Text = "Game loaded";
+        }
+        else
+        {
+            ConsoleWrite("Load failed or no save in slot 1!", "#FFFF4444");
+        }
     }
 
     // --- Debug Console ---
@@ -578,6 +614,10 @@ public partial class MainWindow : Window
                 ConsoleWrite("  shadows        - Toggle shadows", "#FF888888");
                 ConsoleWrite("  volume <0-100> - Master volume", "#FF888888");
                 ConsoleWrite("  window <w> <h> - Set window size", "#FF888888");
+                ConsoleWrite("  save [slot]    - Save game (F5)", "#FF888888");
+                ConsoleWrite("  load [slot]    - Load game (F9)", "#FF888888");
+                ConsoleWrite("  saves          - List save slots", "#FF888888");
+                ConsoleWrite("  delsave <slot> - Delete save", "#FF888888");
                 ConsoleWrite("  clear          - Clear console", "#FF888888");
                 ConsoleWrite("  save           - Save settings", "#FF888888");
                 ConsoleWrite("  reset          - Reset player", "#FF888888");
@@ -678,16 +718,12 @@ public partial class MainWindow : Window
                 else ConsoleWrite("Usage: window <width> <height>", "#FFFF4444");
                 break;
 
-            case "clear":
-                ConsoleOutput.Text = "";
-                break;
-
             case "log":
                 Logger.Log($"Console: {string.Join(' ', args)}", LogLevel.Info);
                 ConsoleWrite("Logged", "#FF00FF88");
                 break;
 
-            case "save":
+            case "settings":
                 GameSettings.Instance.Save();
                 ConsoleWrite("Settings saved", "#FF00FF88");
                 break;
@@ -707,6 +743,69 @@ public partial class MainWindow : Window
 
             case "options":
                 OpenOptionsMenu();
+                break;
+
+            case "save":
+                if (args.Length > 0 && int.TryParse(args[0], out var saveSlot))
+                {
+                    if (SaveManager.Instance.Save(saveSlot, _blueCube, _redCube, _greenCube))
+                        ConsoleWrite($"Saved to slot {saveSlot}", "#FF00FF88");
+                    else
+                        ConsoleWrite($"Failed to save to slot {saveSlot}", "#FFFF4444");
+                }
+                else
+                {
+                    if (SaveManager.Instance.Save(1, _blueCube, _redCube, _greenCube))
+                        ConsoleWrite("Saved to slot 1 (quick save)", "#FF00FF88");
+                    else
+                        ConsoleWrite("Failed to save", "#FFFF4444");
+                }
+                break;
+
+            case "load":
+                if (args.Length > 0 && int.TryParse(args[0], out var loadSlot))
+                {
+                    var loadData = SaveManager.Instance.Load(loadSlot);
+                    if (loadData != null && SaveManager.Instance.ApplyLoadedState(loadData, _blueCube, _redCube, _greenCube))
+                        ConsoleWrite($"Loaded from slot {loadSlot}", "#FF00FF88");
+                    else
+                        ConsoleWrite($"Failed to load from slot {loadSlot}", "#FFFF4444");
+                }
+                else
+                {
+                    var loadData = SaveManager.Instance.Load(1);
+                    if (loadData != null && SaveManager.Instance.ApplyLoadedState(loadData, _blueCube, _redCube, _greenCube))
+                        ConsoleWrite("Loaded from slot 1 (quick load)", "#FF00FF88");
+                    else
+                        ConsoleWrite("Failed to load", "#FFFF4444");
+                }
+                break;
+
+            case "saves":
+                var slots = SaveManager.Instance.GetAllSlots();
+                ConsoleWrite("Save Slots:", "#FF00D4FF");
+                foreach (var slot in slots)
+                {
+                    if (slot.Exists)
+                        ConsoleWrite($"  [{slot.SlotIndex}] {slot.SlotName} - {slot.Timestamp} ({slot.GameTime:F1}s)", "#FF888888");
+                    else
+                        ConsoleWrite($"  [{slot.SlotIndex}] <empty>", "#FF555555");
+                }
+                break;
+
+            case "delsave":
+                if (args.Length > 0 && int.TryParse(args[0], out var delSlot))
+                {
+                    if (SaveManager.Instance.DeleteSave(delSlot))
+                        ConsoleWrite($"Deleted slot {delSlot}", "#FF00FF88");
+                    else
+                        ConsoleWrite($"Slot {delSlot} not found", "#FFFF4444");
+                }
+                else ConsoleWrite("Usage: delsave <slot>", "#FFFF4444");
+                break;
+
+            case "clear":
+                ConsoleOutput.Text = "";
                 break;
 
             default:
