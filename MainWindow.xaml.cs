@@ -846,6 +846,12 @@ public partial class MainWindow : Window
                 ConsoleWrite("  dummy          - Reset dummy HP", "#FF888888");
                 ConsoleWrite("  dmg <amt>      - Damage dummy", "#FF888888");
                 ConsoleWrite("  combatinfo     - Show combat stats", "#FF888888");
+                ConsoleWrite("  3d             - Toggle 3D view (F7)", "#FF00BFFF");
+                ConsoleWrite("  3d hitboxes    - Toggle 3D hitboxes", "#FF00BFFF");
+                ConsoleWrite("  3d bounds      - Toggle 3D bounds", "#FF00BFFF");
+                ConsoleWrite("  3d grid        - Toggle spatial hash", "#FF00BFFF");
+                ConsoleWrite("  3d reset       - Reset 3D camera", "#FF00BFFF");
+                ConsoleWrite("  3d info        - Show 3D stats", "#FF00BFFF");
                 ConsoleWrite("  clear          - Clear console", "#FF888888");
                 ConsoleWrite("  save           - Save settings", "#FF888888");
                 ConsoleWrite("  reset          - Reset player", "#FF888888");
@@ -1182,6 +1188,36 @@ public partial class MainWindow : Window
 
             case "clear":
                 ConsoleOutput.Text = "";
+                break;
+
+            case "3d":
+                Toggle3DView();
+                break;
+
+            case "3d hitboxes":
+                Rendering3D.DebugRenderer3D.Instance.ToggleHitboxes();
+                ConsoleWrite("3D hitbox debug toggled", "#FF00BFFF");
+                break;
+
+            case "3d bounds":
+                Rendering3D.DebugRenderer3D.Instance.ToggleBounds();
+                ConsoleWrite("3D bounds debug toggled", "#FF00BFFF");
+                break;
+
+            case "3d grid":
+                Rendering3D.DebugRenderer3D.Instance.ToggleSpatialHash();
+                ConsoleWrite("3D spatial hash toggled", "#FF00BFFF");
+                break;
+
+            case "3d reset":
+                Btn3DResetCamera_Click(this, new RoutedEventArgs());
+                break;
+
+            case "3d info":
+                ConsoleWrite($"3D Objects: {Rendering3D.MeshRenderer.Instance.ObjectCount}", "#FF00BFFF");
+                ConsoleWrite($"3D Hitboxes active: {Rendering3D.Hitbox3DManager.Instance.ActiveHitboxCount}", "#FF00BFFF");
+                ConsoleWrite($"3D Frame: {Rendering3D.FramePerfectTimer.Instance.FixedFrame}", "#FF00BFFF");
+                ConsoleWrite($"Camera: dist={GameSettings.Instance.CameraDistance:F1} angX={GameSettings.Instance.CameraAngleX:F0} angY={GameSettings.Instance.CameraAngleY:F0}", "#FF00BFFF");
                 break;
 
             default:
