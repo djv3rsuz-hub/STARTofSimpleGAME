@@ -60,6 +60,8 @@ public partial class MainWindow : Window
     private Cube? _dummyCube;
     private bool _hitboxDebug;
     private Scene3D? _scene3D;
+    private bool _3DMouseDragging;
+    private System.Windows.Point _3DLastMousePos;
     private readonly DispatcherTimer _uiUpdateTimer;
     private readonly DispatcherTimer _controllerCheckTimer;
 
@@ -772,6 +774,40 @@ public partial class MainWindow : Window
         Text3DCameraAngleX.Text = settings.CameraAngleX.ToString("F1");
         Text3DCameraAngleY.Text = settings.CameraAngleY.ToString("F1");
         ConsoleWrite("3D camera reset", "#FF00BFFF");
+    }
+
+    private void Viewport3D_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        _3DMouseDragging = true;
+        _3DLastMousePos = e.GetPosition(Viewport3D);
+        Viewport3D.CaptureMouse();
+    }
+
+    private void Viewport3D_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        _3DMouseDragging = false;
+        Viewport3D.ReleaseMouseCapture();
+    }
+
+    private void Viewport3D_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (!_3DMouseDragging) return;
+        var pos = e.GetPosition(Viewport3D);
+        double dx = pos.X - _3DLastMousePos.X;
+        double dy = pos.Y - _3DLastMousePos.Y;
+        _3DLastMousePos = pos;
+
+        var settings = GameSettings.Instance;
+        settings.CameraAngleY += dx * 0.5;
+        settings.CameraAngleX = Math.Clamp(settings.CameraAngleX + dy * 0.5, -89, 89);
+        Update3DCamera();
+    }
+
+    private void Viewport3D_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    {
+        var settings = GameSettings.Instance;
+        settings.CameraDistance = Math.Clamp(settings.CameraDistance - e.Delta * 0.01, 2, 50);
+        Update3DCamera();
     }
 
     // --- Debug Console ---
