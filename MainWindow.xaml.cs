@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private GameVisualHost? _gameHost;
     private Cube? _blueCube;
     private Cube? _redCube;
+    private Cube? _greenCube;
     private readonly DispatcherTimer _uiUpdateTimer;
     private readonly DispatcherTimer _controllerCheckTimer;
 
@@ -100,6 +101,7 @@ public partial class MainWindow : Window
             // Create game objects from charsettings.ini
             var playerData = CharSettings.GetCharacter("PlayerCube");
             var enemyData = CharSettings.GetCharacter("EnemyCube");
+            var greenData = CharSettings.GetCharacter("GreenCube");
 
             if (playerData != null)
             {
@@ -129,6 +131,21 @@ public partial class MainWindow : Window
                 };
                 engine.RegisterObject(_redCube);
                 Logger.Log($"Enemy cube: {enemyData.Name} at ({enemyData.StartX}, {enemyData.StartY})", LogLevel.Info);
+            }
+
+            if (greenData != null)
+            {
+                _greenCube = new Cube(
+                    greenData.StartX, greenData.StartY,
+                    greenData.Size, greenData.Color,
+                    greenData.Controllable)
+                {
+                    MoveSpeed = greenData.MoveSpeed,
+                    AccelerationSpeed = greenData.AccelerationSpeed,
+                    DecelerationSpeed = greenData.DecelerationSpeed
+                };
+                engine.RegisterObject(_greenCube);
+                Logger.Log($"Green cube: {greenData.Name} at ({greenData.StartX}, {greenData.StartY})", LogLevel.Info);
             }
 
             // Start engine
