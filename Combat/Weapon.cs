@@ -115,61 +115,86 @@ public class Sword : Weapon
 
         int activeFrame = frame - fd.StartupFrames;
         double progress = (double)activeFrame / fd.ActiveFrames;
-        double arcAngle = comboIndex == 2 ? 140 : 100;
+        double arcAngle = comboIndex == 2 ? 160 : 120;
         double halfArc = arcAngle / 2.0;
-        double range = Range * (0.8 + progress * 0.4);
+        double range = Range * (1.0 + progress * 0.5);
 
-        int alpha = (int)(255 * (1 - progress));
+        int alpha = (int)(255 * Math.Min(1, (1 - progress) * 1.5));
         var slashColor = Color.FromArgb((byte)alpha, _slashColor.R, _slashColor.G, _slashColor.B);
-        var trailColor = Color.FromArgb((byte)(alpha * 0.5), _slashTrailColor.R, _slashTrailColor.G, _slashTrailColor.B);
+        var trailColor = Color.FromArgb((byte)(alpha * 0.6), _slashTrailColor.R, _slashTrailColor.G, _slashTrailColor.B);
 
         var slashBrush = new SolidColorBrush(slashColor);
         var trailBrush = new SolidColorBrush(trailColor);
-        var pen = new Pen(slashBrush, 3);
 
-        int arcPoints = comboIndex == 2 ? 16 : 10;
+        // Main arc - thick bright line
+        int arcPoints = comboIndex == 2 ? 20 : 14;
         var points = new PointCollection();
+        var trailPoints = new PointCollection();
 
         for (int i = 0; i <= arcPoints; i++)
         {
             double t = (double)i / arcPoints;
             double angle = rotation + (-halfArc + arcAngle * t) * Math.PI / 180;
 
-            double trailT = Math.Max(0, t - 0.15);
-            double trailAngle = rotation + (-halfArc + arcAngle * trailT) * Math.PI / 180;
-            double trailR = range * 0.85;
-
             points.Add(new Point(
                 pos.X + Math.Cos(angle) * range,
                 pos.Y + Math.Sin(angle) * range));
+
+            double trailAngle = rotation + (-halfArc + arcAngle * Math.Max(0, t - 0.2)) * Math.PI / 180;
+            trailPoints.Add(new Point(
+                pos.X + Math.Cos(trailAngle) * range * 0.8,
+                pos.Y + Math.Sin(trailAngle) * range * 0.8));
         }
 
+        // Glow trail (wide, semi-transparent)
+        for (int i = 0; i < trailPoints.Count - 1; i++)
+        {
+            double t = (double)i / trailPoints.Count;
+            double thickness = 18 * (1 - t * 0.5);
+            var glowPen = new Pen(trailBrush, thickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+            context.DrawLine(glowPen, trailPoints[i], trailPoints[i + 1]);
+        }
+
+        // Main slash line (bright, medium thickness)
         for (int i = 0; i < points.Count - 1; i++)
         {
-            double thickness = 4 * (1 - (double)i / points.Count);
-            var thickPen = new Pen(slashBrush, thickness);
-            context.DrawLine(thickPen, points[i], points[i + 1]);
+            double t = (double)i / points.Count;
+            double thickness = 8 * (1 - t * 0.3);
+            var mainPen = new Pen(slashBrush, thickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+            context.DrawLine(mainPen, points[i], points[i + 1]);
         }
 
-        double glowRadius = range * 0.4 * (1 - progress);
-        var glowBrush = new SolidColorBrush(Color.FromArgb((byte)(alpha * 0.3), 150, 180, 255));
+        // Core white line (thin, brightest)
+        var coreBrush = new SolidColorBrush(Color.FromArgb((byte)(alpha * 0.9), 255, 255, 255));
+        for (int i = 0; i < points.Count - 1; i++)
+        {
+            double t = (double)i / points.Count;
+            double thickness = 3 * (1 - t * 0.5);
+            var corePen = new Pen(coreBrush, thickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+            context.DrawLine(corePen, points[i], points[i + 1]);
+        }
+
+        // Center glow burst
+        double glowRadius = range * 0.5 * (1 - progress);
+        var glowBrush = new SolidColorBrush(Color.FromArgb((byte)(alpha * 0.4), 180, 200, 255));
         context.DrawEllipse(glowBrush, null, new Point(pos.X, pos.Y), glowRadius, glowRadius);
 
-        if (progress > 0.3 && progress < 0.8)
+        // Sparks at arc tip
+        if (progress > 0.2 && progress < 0.9)
         {
-            double sparkAlpha = Math.Sin((progress - 0.3) / 0.5 * Math.PI);
+            double sparkAlpha = Math.Sin((progress - 0.2) / 0.7 * Math.PI);
             var sparkBrush = new SolidColorBrush(Color.FromArgb(
-                (byte)(sparkAlpha * 200), _hitSparkColor.R, _hitSparkColor.G, _hitSparkColor.B));
-            double sparkRange = range * 0.7;
-            double sparkAngle = rotation + (halfArc * 0.3) * Math.PI / 180;
+                (byte)(sparkAlpha * 255), _hitSparkColor.R, _hitSparkColor.G, _hitSparkColor.B));
+            double sparkRange = range * 0.85;
 
-            for (int s = 0; s < 3; s++)
+            for (int s = 0; s < 5; s++)
             {
-                double sa = sparkAngle + (s - 1) * 0.2;
-                double sr = sparkRange + (s - 1) * 5;
+                double sa = rotation + (halfArc * (0.4 + s * 0.1)) * Math.PI / 180;
+                double sr = sparkRange + (s - 2) * 4;
+                double sz = 3 + (4 - s) * 0.8;
                 context.DrawEllipse(sparkBrush, null,
                     new Point(pos.X + Math.Cos(sa) * sr, pos.Y + Math.Sin(sa) * sr),
-                    2 + s, 2 + s);
+                    sz, sz);
             }
         }
     }

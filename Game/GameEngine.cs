@@ -134,6 +134,63 @@ public sealed class GameEngine
             VFXSystem.Instance.Update(DeltaTime);
             DamageNumberSystem.Instance.Update(DeltaTime);
 
+            // Combat hit detection
+            foreach (var attacker in _gameObjects.OfType<Cube>())
+            {
+                if (!attacker.IsActive || !attacker.Combat.IsAttacking) continue;
+                if (attacker.Combat.CurrentHitboxes.Length == 0) continue;
+
+                int startup = attacker.Combat.CurrentHitboxes[0].ActiveFrameStart;
+                int activeEnd = attacker.Combat.CurrentHitboxes[0].ActiveFrameEnd;
+                if (attacker.Combat.CurrentFrame < startup || attacker.Combat.CurrentFrame > activeEnd)
+                    continue;
+
+                foreach (var defender in _gameObjects.OfType<Cube>())
+                {
+                    if (!defender.IsActive || defender == attacker) continue;
+                    if (attacker.Combat.CheckHitTarget(defender.GetHashCode())) continue;
+
+                    var defenderRect = defender.Bounds;
+                    bool hit = false;
+                    foreach (var hb in attacker.Combat.CurrentHitboxes)
+                    {
+                        if (hb.CheckFrame(attacker.Combat.CurrentFrame) && hb.Bounds.IntersectsWith(defenderRect))
+                        {
+                            hit = true;
+                            break;
+                        }
+                    }
+
+                    if (hit)
+                    {
+                        attacker.Combat.RegisterHit(defender.GetHashCode());
+
+                        var result = defender.Combat.ProcessIncomingAttack(
+                            attacker.Stats,
+                            new Vector(attacker.Position.X + attacker.Width / 2, attacker.Position.Y + attacker.Height / 2),
+                            new Vector(defender.Position.X + defender.Width / 2, defender.Position.Y + defender.Height / 2),
+                            attacker.Combat.ComboIndex);
+
+                        if (result.Hit)
+                        {
+                            defender.TakeDamage(result.DamageDealt, result.Knockback, result.HitEffect);
+                            Logger.Log($"{attacker.Stats.GetType().Name} hit {defender.Stats.GetType().Name} for {result.DamageDealt:F1} dmg (crit={result.Crit})", LogLevel.Debug);
+                        }
+                        else if (result.PerfectParried || result.Parried)
+                        {
+                            var pos = new Vector(defender.Position.X + defender.Width / 2, defender.Position.Y);
+                            DamageNumberSystem.Instance.Add(pos, 0, false, false, result.PerfectParried, false);
+                            if (result.PerfectParried) defender.Combat.TriggerCounter();
+                        }
+                        else if (result.Dodged)
+                        {
+                            var pos = new Vector(defender.Position.X + defender.Width / 2, defender.Position.Y);
+                            DamageNumberSystem.Instance.Add(pos, 0, false, false, false, true);
+                        }
+                    }
+                }
+            }
+
             // Collision
             ResolveCollisions();
             updateSw.Stop();

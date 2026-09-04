@@ -56,6 +56,7 @@ public partial class MainWindow : Window
     private Cube? _redCube;
     private Cube? _greenCube;
     private Cube? _dummyCube;
+    private bool _hitboxDebug;
     private readonly DispatcherTimer _uiUpdateTimer;
     private readonly DispatcherTimer _controllerCheckTimer;
 
@@ -584,6 +585,9 @@ public partial class MainWindow : Window
             case System.Windows.Input.Key.F3:
                 ToggleCollision();
                 break;
+            case System.Windows.Input.Key.F6:
+                ToggleHitboxDebug();
+                break;
             case System.Windows.Input.Key.F5:
                 QuickSave();
                 break;
@@ -605,6 +609,17 @@ public partial class MainWindow : Window
         CollisionDebugText.Foreground = settings.ShowCollision ? Brushes.LimeGreen : Brushes.Gray;
         ConsoleWrite(settings.ShowCollision ? "Collision debug: ON" : "Collision debug: OFF", "#FF00FF88");
         Logger.Log($"Collision debug: {settings.ShowCollision}", LogLevel.Info);
+    }
+
+    private void ToggleHitboxDebug()
+    {
+        _hitboxDebug = !_hitboxDebug;
+        if (_blueCube != null) _blueCube.Combat.ShowHitboxDebug = _hitboxDebug;
+        if (_redCube != null) _redCube.Combat.ShowHitboxDebug = _hitboxDebug;
+        if (_greenCube != null) _greenCube.Combat.ShowHitboxDebug = _hitboxDebug;
+        if (_dummyCube != null) _dummyCube.Combat.ShowHitboxDebug = _hitboxDebug;
+        ConsoleWrite(_hitboxDebug ? "Hitbox debug: ON [F6]" : "Hitbox debug: OFF [F6]", "#FF00FF88");
+        Logger.Log($"Hitbox debug: {_hitboxDebug}", LogLevel.Info);
     }
 
     private void QuickSave()

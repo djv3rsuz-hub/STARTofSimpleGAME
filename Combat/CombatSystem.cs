@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Media;
 using SimpleWPFGame.Config;
 using SimpleWPFGame.Logging;
+using SimpleWPFGame.Settings;
 
 namespace SimpleWPFGame.Combat;
 
@@ -19,7 +20,12 @@ public class CombatComponent
     public bool IsInvincible => State == CombatState.Dodging;
     public bool CanAct => State == CombatState.Idle || CanCancel;
 
-    private double _comboWindow = 0.3;
+    public Hitbox[] CurrentHitboxes { get; private set; } = Array.Empty<Hitbox>();
+    public bool ShowHitboxDebug { get; set; }
+    public Vector OwnerPosition { get; set; }
+    public double OwnerRotation { get; set; }
+
+    private double _comboWindow = 0.5;
     private double _stunTimer;
     private double _counterTimer;
     private int _parryFrame;
@@ -32,8 +38,8 @@ public class CombatComponent
     private bool _wasPerfectParried;
     private FrameData _currentFrameData;
     private CharacterStats _stats;
-
-    private const double FRAMETIME = 1.0 / 60.0;
+    private HashSet<int> _hitTargets = new();
+    private bool _hasHitThisSwing;
 
     public CombatComponent(CharacterStats stats)
     {
@@ -49,13 +55,15 @@ public class CombatComponent
         Logger.Log($"Equipped: {weapon.Name}", LogLevel.Info);
     }
 
-    public bool TryAttack(Vector attackerPos, double attackerRotation)
+    public bool TryAttack(Vector attackerPos, double attackerRotation, bool heavy = false)
     {
         if (!CanAct || EquippedWeapon == null) return false;
 
         if (State == CombatState.Idle)
         {
             StartAttack(0);
+            OwnerPosition = attackerPos;
+            OwnerRotation = attackerRotation;
             return true;
         }
 
@@ -63,6 +71,8 @@ public class CombatComponent
         {
             int nextCombo = ComboIndex + 1;
             StartAttack(nextCombo);
+            OwnerPosition = attackerPos;
+            OwnerRotation = attackerRotation;
             return true;
         }
 
@@ -77,6 +87,9 @@ public class CombatComponent
         _currentFrameData = EquippedWeapon!.GetFrameData(comboIndex);
         CanCancel = false;
         ComboTimer = _comboWindow;
+        _hasHitThisSwing = false;
+        _hitTargets.Clear();
+        UpdateHitboxes();
     }
 
     public bool TryDodge()
@@ -114,7 +127,7 @@ public class CombatComponent
     {
         if (!CanAct) return false;
 
-        double parryChance = _stats.DodgeChance * 0.8;
+        double parryChance = _stats.ParryChance;
         _isPerfectParrying = CombatCalculator.RollPerfectParry(parryChance);
         _isParrying = !_isPerfectParrying && CombatCalculator.RollParry(parryChance);
 
@@ -174,6 +187,25 @@ public class CombatComponent
             attackFrameData);
     }
 
+    public bool CheckHitTarget(int targetId)
+    {
+        return _hitTargets.Contains(targetId);
+    }
+
+    public void RegisterHit(int targetId)
+    {
+        _hitTargets.Add(targetId);
+        _hasHitThisSwing = true;
+    }
+
+    private void UpdateHitboxes()
+    {
+        if (EquippedWeapon == null) return;
+        CurrentHitboxes = EquippedWeapon.GetHitboxes(ComboIndex, OwnerPosition, OwnerRotation);
+        foreach (ref var hb in CurrentHitboxes.AsSpan())
+            hb.IsActive = true;
+    }
+
     public void Update(double deltaTime)
     {
         switch (State)
@@ -198,11 +230,15 @@ public class CombatComponent
                 UpdateStun(deltaTime);
                 break;
         }
+
+        if (IsAttacking)
+            UpdateHitboxes();
     }
 
     private void UpdateAttack(double deltaTime)
     {
         CurrentFrame++;
+        OwnerPosition = OwnerPosition;
 
         int totalFrames = _currentFrameData.TotalFrames;
         if (CurrentFrame >= _currentFrameData.StartupFrames + _currentFrameData.ActiveFrames)
@@ -279,6 +315,7 @@ public class CombatComponent
         CanCancel = false;
         _parryFrame = 0;
         _dodgeFrame = 0;
+        CurrentHitboxes = Array.Empty<Hitbox>();
     }
 
     public void Render(DrawingContext context, Vector position, double rotation)
@@ -290,9 +327,24 @@ public class CombatComponent
             EquippedWeapon.RenderSlash(context, position, rotation, CurrentFrame, ComboIndex);
         }
 
+        if (ShowHitboxDebug && CurrentHitboxes.Length > 0)
+        {
+            foreach (var hb in CurrentHitboxes)
+            {
+                bool active = hb.CheckFrame(CurrentFrame);
+                var color = active
+                    ? Color.FromArgb(120, 255, 0, 0)
+                    : Color.FromArgb(60, 255, 255, 0);
+                var brush = new SolidColorBrush(color);
+                var pen = new Pen(new SolidColorBrush(
+                    active ? Color.FromRgb(255, 100, 100) : Color.FromRgb(200, 200, 0)), 1);
+                context.DrawRectangle(brush, pen, hb.Bounds);
+            }
+        }
+
         if (State == CombatState.Dodging && _isPerfectDodging)
         {
-            double alpha = 0.4 * (1 - (double)CurrentFrame / _currentFrameData.ActiveFrames);
+            double alpha = 0.6 * (1 - (double)CurrentFrame / _currentFrameData.ActiveFrames);
             var brush = new SolidColorBrush(Color.FromArgb((byte)(alpha * 255), 100, 200, 255));
             context.DrawEllipse(brush, null, new Point(position.X, position.Y), 35, 35);
         }

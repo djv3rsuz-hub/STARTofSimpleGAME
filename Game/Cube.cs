@@ -82,10 +82,34 @@ public class Cube : GameObject
         _borderPen = new Pen(brush, thickness);
     }
 
+    public void TakeDamage(double damage, Vector knockback, string effect = "hit")
+    {
+        double reduction = 1.0 - Stats.DamageReduction;
+        double finalDamage = Math.Max(1, damage * reduction);
+        Stats.HP = Math.Max(0, Stats.HP - (float)(finalDamage / 100.0));
+
+        ApplyKnockback(knockback);
+
+        var pos = new Vector(Position.X + Width / 2, Position.Y);
+        bool isCrit = effect == "crit_hit";
+        bool isHeal = effect == "heal";
+        bool isPerfect = effect == "perfect_parry";
+        bool isMiss = effect == "miss";
+        DamageNumberSystem.Instance.Add(pos, finalDamage, isCrit, isHeal, isPerfect, isMiss);
+
+        if (Stats.HP <= 0)
+        {
+            IsActive = false;
+            Logger.Log("Cube destroyed", LogLevel.Info);
+        }
+    }
+
     public override void Update(double deltaTime)
     {
         if (!IsActive) return;
 
+        Combat.OwnerPosition = new Vector(Position.X + Width / 2, Position.Y + Height / 2);
+        Combat.OwnerRotation = FacingAngle;
         Combat.Update(deltaTime);
 
         if (DashCooldownRemaining > 0)
@@ -130,11 +154,15 @@ public class Cube : GameObject
         var input = InputManager.Instance;
         var controller = ControllerManager.Instance;
 
-        // Attack: J key / X button / Left Click
+        // Attack: X button / J key (combo)
         bool attackPressed = input.IsKeyJustPressed(System.Windows.Input.Key.J)
             || (controller.IsConnected && controller.IsXDown);
 
-        // Block: K key / Right Bumper
+        // Heavy Attack: Y button / U key
+        bool heavyPressed = input.IsKeyJustPressed(System.Windows.Input.Key.U)
+            || (controller.IsConnected && controller.IsYDown);
+
+        // Block: K key / Right Bumper (hold)
         bool blockPressed = input.IsKeyDown(System.Windows.Input.Key.K)
             || (controller.IsConnected && controller.IsRBDown);
 
@@ -142,17 +170,15 @@ public class Cube : GameObject
         bool parryPressed = input.IsKeyJustPressed(System.Windows.Input.Key.L)
             || (controller.IsConnected && controller.IsLBDown);
 
-        // Dodge: I key / Y button
+        // Dodge: I key / A button
         bool dodgePressed = input.IsKeyJustPressed(System.Windows.Input.Key.I)
-            || (controller.IsConnected && controller.IsYDown);
+            || (controller.IsConnected && controller.IsADown);
 
-        if (attackPressed && Actions.AttackEnabled)
+        if ((attackPressed || heavyPressed) && Actions.AttackEnabled)
         {
-            if (Combat.TryAttack(Position, FacingAngle))
-            {
-                UpdateFacingDirection();
+            UpdateFacingDirection();
+            if (Combat.TryAttack(Position, FacingAngle, heavyPressed))
                 return true;
-            }
         }
 
         if (blockPressed && Actions.BlockEnabled && Combat.CanAct)
