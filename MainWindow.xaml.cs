@@ -11,6 +11,7 @@ using SimpleWPFGame.Settings;
 using SimpleWPFGame.UI;
 using SimpleWPFGame.SaveSystem;
 using SimpleWPFGame.VFX;
+using SimpleWPFGame.Combat;
 
 namespace SimpleWPFGame;
 
@@ -54,6 +55,7 @@ public partial class MainWindow : Window
     private Cube? _blueCube;
     private Cube? _redCube;
     private Cube? _greenCube;
+    private Cube? _dummyCube;
     private readonly DispatcherTimer _uiUpdateTimer;
     private readonly DispatcherTimer _controllerCheckTimer;
 
@@ -194,6 +196,33 @@ public partial class MainWindow : Window
                 engine.RegisterObject(_greenCube);
             }
 
+            // Load dummy cube
+            var dummyData = CharSettings.GetCharacter("DummyCube");
+            if (dummyData != null)
+            {
+                _dummyCube = new Cube(
+                    dummyData.StartX, dummyData.StartY,
+                    dummyData.Size, dummyData.Color,
+                    dummyData.Controllable)
+                {
+                    MoveSpeed = dummyData.MoveSpeed,
+                    AccelerationSpeed = dummyData.AccelerationSpeed,
+                    DecelerationSpeed = dummyData.DecelerationSpeed,
+                    DashDistance = dummyData.DashDistance,
+                    DashRotationSpeed = dummyData.DashRotationSpeed,
+                    DashCooldown = dummyData.DashCooldown,
+                    DashDuration = dummyData.DashDuration
+                };
+                _dummyCube.SetStats(dummyData.Stats, dummyData.Actions, dummyData.AI);
+                _dummyCube.SetBorderColor(dummyData.BorderColor, dummyData.BorderThickness);
+                engine.RegisterObject(_dummyCube);
+                _dummyCube.EquipWeapon(new SimpleWPFGame.Combat.Sword());
+                Logger.Log($"Dummy: {dummyData.Name} | HP={dummyData.Stats.HP:F2}", LogLevel.Info);
+            }
+
+            // Equip player with sword
+            _blueCube?.EquipWeapon(new SimpleWPFGame.Combat.Sword());
+
             // Start engine
             engine.Start();
 
@@ -312,6 +341,28 @@ public partial class MainWindow : Window
                 GreenHP.Text = $"HP: {_greenCube.Stats.HP * 100:F2}%";
                 GreenAtk.Text = $"Attack: {_greenCube.Stats.Attack * 100:F2}%";
                 GreenDashText.Text = $"Dash: {(_greenCube.Actions.DashEnabled ? "ON" : "OFF")}";
+            }
+            if (_dummyCube != null)
+            {
+                var ds = _dummyCube.Stats;
+                var dState = _dummyCube.Combat.State;
+                DummyHP.Text = $"HP: {ds.HP * 100:F1}%";
+                DummyState.Text = $"State: {dState}";
+                DummyState.Foreground = dState == SimpleWPFGame.Combat.CombatState.Parrying
+                    ? Brushes.Yellow : dState == SimpleWPFGame.Combat.CombatState.Blocking
+                    ? Brushes.DodgerBlue : Brushes.Gray;
+            }
+
+            // Combat state
+            if (_blueCube != null)
+            {
+                var cs = _blueCube.Combat;
+                CombatStateText.Text = $"Combat: {cs.State} F:{cs.CurrentFrame}";
+                CombatStateText.Foreground = cs.State == SimpleWPFGame.Combat.CombatState.Attacking
+                    ? Brushes.Red : cs.State == SimpleWPFGame.Combat.CombatState.Dodging
+                    ? Brushes.LimeGreen : cs.State == SimpleWPFGame.Combat.CombatState.Parrying
+                    ? Brushes.Yellow : Brushes.White;
+                WeaponText.Text = $"Weapon: {cs.EquippedWeapon?.Name ?? "None"}";
             }
 
             // Time
@@ -638,6 +689,14 @@ public partial class MainWindow : Window
                 ConsoleWrite("  vfx water      - Spawn water", "#FF888888");
                 ConsoleWrite("  vfx clear      - Remove all VFX", "#FF888888");
                 ConsoleWrite("  vfx info       - Show VFX stats", "#FF888888");
+                ConsoleWrite("  attack         - Player attack", "#FF888888");
+                ConsoleWrite("  block          - Player block", "#FF888888");
+                ConsoleWrite("  parry          - Player parry", "#FF888888");
+                ConsoleWrite("  dodge          - Player dodge", "#FF888888");
+                ConsoleWrite("  combo          - Test 3-hit combo", "#FF888888");
+                ConsoleWrite("  dummy          - Reset dummy HP", "#FF888888");
+                ConsoleWrite("  dmg <amt>      - Damage dummy", "#FF888888");
+                ConsoleWrite("  combatinfo     - Show combat stats", "#FF888888");
                 ConsoleWrite("  clear          - Clear console", "#FF888888");
                 ConsoleWrite("  save           - Save settings", "#FF888888");
                 ConsoleWrite("  reset          - Reset player", "#FF888888");
@@ -895,6 +954,81 @@ public partial class MainWindow : Window
             case "vfx info":
                 var vi = VFXSystem.Instance;
                 ConsoleWrite($"VFX: {vi.ActiveEffectCount} effects, {vi.TotalParticleCount} particles", "#FF00FF88");
+                break;
+
+            case "attack":
+                if (_blueCube != null && _blueCube.Combat.CanAct)
+                {
+                    _blueCube.Combat.TryAttack(_blueCube.Position, _blueCube.FacingAngle);
+                    ConsoleWrite("Attack!", "#FFFF4444");
+                }
+                else ConsoleWrite("Cannot attack now", "#FFFF4444");
+                break;
+
+            case "block":
+                if (_blueCube != null && _blueCube.Combat.CanAct)
+                {
+                    _blueCube.Combat.TryBlock();
+                    ConsoleWrite("Blocking", "#FF4488FF");
+                }
+                break;
+
+            case "parry":
+                if (_blueCube != null && _blueCube.Combat.CanAct)
+                {
+                    _blueCube.Combat.TryParry();
+                    ConsoleWrite("Parry!", "#FFFFFF00");
+                }
+                break;
+
+            case "dodge":
+                if (_blueCube != null && _blueCube.Combat.CanAct)
+                {
+                    _blueCube.Combat.TryDodge();
+                    ConsoleWrite("Dodge!", "#FF00FF88");
+                }
+                break;
+
+            case "dummy":
+                if (_dummyCube != null)
+                {
+                    var dd = CharSettings.GetCharacter("DummyCube");
+                    if (dd != null)
+                    {
+                        _dummyCube.Stats.HP = dd.Stats.HP;
+                        ConsoleWrite($"Dummy HP reset to {dd.Stats.HP * 100:F0}%", "#FFFFD700");
+                    }
+                }
+                else ConsoleWrite("No dummy found", "#FFFF4444");
+                break;
+
+            case "dmg":
+                if (_dummyCube != null && args.Length > 0 && double.TryParse(args[0], out double dmg))
+                {
+                    _dummyCube.Stats.HP = Math.Max(0, _dummyCube.Stats.HP - (float)(dmg / 100.0));
+                    var pos = new System.Windows.Vector(
+                        _dummyCube.Position.X + _dummyCube.Width / 2,
+                        _dummyCube.Position.Y);
+                    DamageNumberSystem.Instance.Add(pos, dmg, dmg > 20);
+                    ConsoleWrite($"Dummy took {dmg:F0} damage. HP: {_dummyCube.Stats.HP * 100:F1}%", "#FFFF4444");
+                }
+                else ConsoleWrite("Usage: dmg <amount>", "#FFFF4444");
+                break;
+
+            case "combatinfo":
+                if (_blueCube != null)
+                {
+                    var cs = _blueCube.Stats;
+                    ConsoleWrite($"=== Player Combat Stats ===", "#FF00D4FF");
+                    ConsoleWrite($"  ATK: {cs.Attack * 100:F1}% | DEF: {cs.Defence * 100:F1}% | SPD: {cs.AttackSpeed:F2}x", "#FF888888");
+                    ConsoleWrite($"  Crit: {cs.CriticalChance * 100:F1}% | CritDmg: {cs.CriticalDamage * 100:F0}%", "#FF888888");
+                    ConsoleWrite($"  Dodge: {cs.DodgeChance * 100:F1}% | Parry: {cs.ParryChance * 100:F1}% | Block: {cs.BlockChance * 100:F1}%", "#FF888888");
+                    ConsoleWrite($"  Pen: {cs.Penetration * 100:F1}% | ArmorPen: {cs.ArmorPen * 100:F1}% | LS: {cs.LifeSteal * 100:F1}%", "#FF888888");
+                    ConsoleWrite($"  Weapon: {_blueCube.Combat.EquippedWeapon?.Name ?? "None"}", "#FF888888");
+                    ConsoleWrite($"  State: {_blueCube.Combat.State} | Frame: {_blueCube.Combat.CurrentFrame}", "#FF888888");
+                    if (_dummyCube != null)
+                        ConsoleWrite($"  Dummy HP: {_dummyCube.Stats.HP * 100:F1}%", "#FFFFD700");
+                }
                 break;
 
             case "clear":

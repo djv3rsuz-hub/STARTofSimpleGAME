@@ -44,6 +44,18 @@ public sealed class GameSettings
     public bool ShowLogPanel { get; set; } = true;
     public bool ShowCollision { get; set; } = false;
 
+    // --- Combat ---
+    public bool ShowDamageNumbers { get; set; } = true;
+    public bool ShowHitEffects { get; set; } = true;
+    public bool ShowCombatLog { get; set; } = false;
+    public bool AutoTargetNearest { get; set; } = true;
+    public float DamageNumberScale { get; set; } = 1.0f;
+    public bool ShowPerfectParryFlash { get; set; } = true;
+    public bool ShowPerfectDodgeTrail { get; set; } = true;
+    public bool ShowComboCounter { get; set; } = true;
+    public bool ShowHealthBars { get; set; } = true;
+    public bool ShowStaminaBar { get; set; } = true;
+
     // --- Input ---
     public float ControllerSensitivity { get; set; } = 1.0f;
     public bool InvertMouseY { get; set; } = false;
@@ -143,6 +155,19 @@ public sealed class GameSettings
             sb.AppendLine($"ShowCollision = {ShowCollision}");
             sb.AppendLine();
 
+            sb.AppendLine("[Combat]");
+            sb.AppendLine($"ShowDamageNumbers = {ShowDamageNumbers}");
+            sb.AppendLine($"ShowHitEffects = {ShowHitEffects}");
+            sb.AppendLine($"ShowCombatLog = {ShowCombatLog}");
+            sb.AppendLine($"AutoTargetNearest = {AutoTargetNearest}");
+            sb.AppendLine($"DamageNumberScale = {DamageNumberScale}");
+            sb.AppendLine($"ShowPerfectParryFlash = {ShowPerfectParryFlash}");
+            sb.AppendLine($"ShowPerfectDodgeTrail = {ShowPerfectDodgeTrail}");
+            sb.AppendLine($"ShowComboCounter = {ShowComboCounter}");
+            sb.AppendLine($"ShowHealthBars = {ShowHealthBars}");
+            sb.AppendLine($"ShowStaminaBar = {ShowStaminaBar}");
+            sb.AppendLine();
+
             sb.AppendLine("[Input]");
             sb.AppendLine($"ControllerSensitivity = {ControllerSensitivity}");
             sb.AppendLine($"InvertMouseY = {InvertMouseY}");
@@ -190,6 +215,16 @@ public sealed class GameSettings
             case nameof(ShowDebugInfo): ShowDebugInfo = ParseBool(value, ShowDebugInfo); break;
             case nameof(ShowLogPanel): ShowLogPanel = ParseBool(value, ShowLogPanel); break;
             case nameof(ShowCollision): ShowCollision = ParseBool(value, ShowCollision); break;
+            case nameof(ShowDamageNumbers): ShowDamageNumbers = ParseBool(value, ShowDamageNumbers); break;
+            case nameof(ShowHitEffects): ShowHitEffects = ParseBool(value, ShowHitEffects); break;
+            case nameof(ShowCombatLog): ShowCombatLog = ParseBool(value, ShowCombatLog); break;
+            case nameof(AutoTargetNearest): AutoTargetNearest = ParseBool(value, AutoTargetNearest); break;
+            case nameof(DamageNumberScale): DamageNumberScale = ParseFloat(value, DamageNumberScale); break;
+            case nameof(ShowPerfectParryFlash): ShowPerfectParryFlash = ParseBool(value, ShowPerfectParryFlash); break;
+            case nameof(ShowPerfectDodgeTrail): ShowPerfectDodgeTrail = ParseBool(value, ShowPerfectDodgeTrail); break;
+            case nameof(ShowComboCounter): ShowComboCounter = ParseBool(value, ShowComboCounter); break;
+            case nameof(ShowHealthBars): ShowHealthBars = ParseBool(value, ShowHealthBars); break;
+            case nameof(ShowStaminaBar): ShowStaminaBar = ParseBool(value, ShowStaminaBar); break;
             case nameof(ControllerSensitivity): ControllerSensitivity = ParseFloat(value, ControllerSensitivity); break;
             case nameof(InvertMouseY): InvertMouseY = ParseBool(value, InvertMouseY); break;
             case nameof(BackgroundColor): BackgroundColor = value; break;

@@ -6,6 +6,7 @@ using SimpleWPFGame.Input;
 using SimpleWPFGame.Logging;
 using SimpleWPFGame.Settings;
 using SimpleWPFGame.VFX;
+using SimpleWPFGame.Combat;
 
 namespace SimpleWPFGame.Game;
 
@@ -131,6 +132,7 @@ public sealed class GameEngine
             }
 
             VFXSystem.Instance.Update(DeltaTime);
+            DamageNumberSystem.Instance.Update(DeltaTime);
 
             // Collision
             ResolveCollisions();
@@ -189,6 +191,10 @@ public sealed class GameEngine
         // VFX
         VFXSystem.Instance.Render(context);
         VFXSystem.Instance.RenderSceneFlash(context, w, h);
+
+        // Damage numbers
+        if (GameSettings.Instance.ShowDamageNumbers)
+            DamageNumberSystem.Instance.Render(context);
 
         // Game border
         if (settings.ShowGameBorder)

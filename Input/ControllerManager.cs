@@ -41,6 +41,10 @@ public sealed class ControllerManager
 
     public bool IsADown => IsAPressed && (_previousState.Gamepad.Buttons & GamepadButtonFlags.A) == 0;
     public bool IsBDown => IsBPressed && (_previousState.Gamepad.Buttons & GamepadButtonFlags.B) == 0;
+    public bool IsXDown => IsXPressed && (_previousState.Gamepad.Buttons & GamepadButtonFlags.X) == 0;
+    public bool IsYDown => IsYPressed && (_previousState.Gamepad.Buttons & GamepadButtonFlags.Y) == 0;
+    public bool IsLBDown => IsLeftShoulder && (_previousState.Gamepad.Buttons & GamepadButtonFlags.LeftShoulder) == 0;
+    public bool IsRBDown => IsRightShoulder && (_previousState.Gamepad.Buttons & GamepadButtonFlags.RightShoulder) == 0;
 
     public bool DPadUp => (_currentState.Gamepad.Buttons & GamepadButtonFlags.DPadUp) != 0;
     public bool DPadDown => (_currentState.Gamepad.Buttons & GamepadButtonFlags.DPadDown) != 0;
