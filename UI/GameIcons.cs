@@ -57,6 +57,14 @@ public static class GameIcons
         public const string Glow = "#FFFF4444";
     }
 
+    public class View3D
+    {
+        public const string Symbol = "\u25B3";        // △ 3D cube
+        public const string Color1 = "#FF00BFFF";     // Deep sky blue
+        public const string Color2 = "#FF1E90FF";     // Dodger blue
+        public const string Glow = "#FF00BFFF";
+    }
+
     public class Character
     {
         public const string Symbol = "\u265F";        // ♟ character

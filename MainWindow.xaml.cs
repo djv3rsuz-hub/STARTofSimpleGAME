@@ -759,6 +759,21 @@ public partial class MainWindow : Window
         _scene3D.SetCameraLookAt(0, 0, 0);
     }
 
+    private void Btn3DToggle_Click(object sender, RoutedEventArgs e) => Toggle3DView();
+
+    private void Btn3DResetCamera_Click(object sender, RoutedEventArgs e)
+    {
+        var settings = GameSettings.Instance;
+        settings.CameraAngleX = 30;
+        settings.CameraAngleY = 0;
+        settings.CameraDistance = 10;
+        Update3DCamera();
+        Text3DCameraDist.Text = settings.CameraDistance.ToString("F1");
+        Text3DCameraAngleX.Text = settings.CameraAngleX.ToString("F1");
+        Text3DCameraAngleY.Text = settings.CameraAngleY.ToString("F1");
+        ConsoleWrite("3D camera reset", "#FF00BFFF");
+    }
+
     // --- Debug Console ---
 
     private void ConsoleInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -1309,6 +1324,7 @@ public partial class MainWindow : Window
             (TabSave, GameIcons.Save.Symbol, "Save", GameIcons.Save.Color1, GameIcons.Save.Color2, GameIcons.Save.Glow),
             (TabLoad, GameIcons.Load.Symbol, "Load", GameIcons.Load.Color1, GameIcons.Load.Color2, GameIcons.Load.Glow),
             (TabOptions, GameIcons.Options.Symbol, "Options", GameIcons.Options.Color1, GameIcons.Options.Color2, GameIcons.Options.Glow),
+            (Tab3D, GameIcons.View3D.Symbol, "3D", GameIcons.View3D.Color1, GameIcons.View3D.Color2, GameIcons.View3D.Glow),
             (TabExit, GameIcons.Exit.Symbol, "Exit", GameIcons.Exit.Color1, GameIcons.Exit.Color2, GameIcons.Exit.Glow),
         };
 
@@ -1353,12 +1369,21 @@ public partial class MainWindow : Window
         SavePanel.Visibility = panelName == "SavePanel" ? Visibility.Visible : Visibility.Collapsed;
         LoadPanel.Visibility = panelName == "LoadPanel" ? Visibility.Visible : Visibility.Collapsed;
         OptionsPanel.Visibility = panelName == "OptionsPanel" ? Visibility.Visible : Visibility.Collapsed;
+        View3DPanel.Visibility = panelName == "View3DPanel" ? Visibility.Visible : Visibility.Collapsed;
         ExitPanel.Visibility = panelName == "ExitPanel" ? Visibility.Visible : Visibility.Collapsed;
 
         if (panelName == "SavePanel") PopulateSaveSlots();
         if (panelName == "LoadPanel") PopulateLoadSlots();
         if (panelName == "OptionsPanel") SyncOptionsUI();
-        if (panelName != "StatsPanel") GameScreenBorder.Visibility = Visibility.Collapsed;
+        if (panelName == "View3DPanel")
+        {
+            GameScreenBorder.Visibility = Visibility.Visible;
+            Text3DObjectCount.Text = MeshRenderer.Instance.ObjectCount.ToString();
+            Text3DCameraDist.Text = GameSettings.Instance.CameraDistance.ToString("F1");
+            Text3DCameraAngleX.Text = GameSettings.Instance.CameraAngleX.ToString("F1");
+            Text3DCameraAngleY.Text = GameSettings.Instance.CameraAngleY.ToString("F1");
+        }
+        else if (panelName != "StatsPanel") GameScreenBorder.Visibility = Visibility.Collapsed;
         else GameScreenBorder.Visibility = Visibility.Visible;
 
         StatusText.Text = panelName switch
@@ -1368,6 +1393,7 @@ public partial class MainWindow : Window
             "SavePanel" => "Select a save slot",
             "LoadPanel" => "Select a save to load",
             "OptionsPanel" => "Adjust game settings",
+            "View3DPanel" => "3D View Settings [F7 to toggle]",
             "ExitPanel" => "Exit confirmation",
             _ => "Game running"
         };
