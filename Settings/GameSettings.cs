@@ -4,6 +4,8 @@ using SimpleWPFGame.Logging;
 
 namespace SimpleWPFGame.Settings;
 
+public enum GraphicsQuality { Low, Medium, High }
+
 public sealed class GameSettings
 {
     private static readonly Lazy<GameSettings> _instance = new(() => new GameSettings());
@@ -13,18 +15,25 @@ public sealed class GameSettings
         AppDomain.CurrentDomain.BaseDirectory, "gamesettings.cfg");
 
     // --- Display ---
-    public int WindowWidth { get; set; } = 1600;
-    public int WindowHeight { get; set; } = 900;
-    public int GameScreenWidth { get; set; } = 1280;
-    public int GameScreenHeight { get; set; } = 720;
+    public int WindowWidth { get; set; } = 1920;
+    public int WindowHeight { get; set; } = 1080;
+    public int GameScreenWidth { get; set; } = 1870;
+    public int GameScreenHeight { get; set; } = 1030;
+    public int GameScreenBorderInset { get; set; } = 25;
     public bool Fullscreen { get; set; } = false;
     public bool VSync { get; set; } = true;
     public int TargetFps { get; set; } = 60;
+
+    // --- Graphics ---
+    public GraphicsQuality GraphicsQuality { get; set; } = GraphicsQuality.High;
+    public bool Shadows { get; set; } = true;
+    public bool ShowGameBorder { get; set; } = true;
 
     // --- Audio ---
     public float MasterVolume { get; set; } = 1.0f;
     public float MusicVolume { get; set; } = 0.8f;
     public float SfxVolume { get; set; } = 1.0f;
+    public float VfxVolume { get; set; } = 1.0f;
 
     // --- Gameplay ---
     public float DefaultMoveSpeed { get; set; } = 350f;
@@ -45,14 +54,18 @@ public sealed class GameSettings
     public string EnemyColor { get; set; } = "#FFFF0000";
     public string UiAccentColor { get; set; } = "#FF00D4FF";
 
+    // --- Runtime ---
+    public bool IsPaused { get; set; }
+    public bool OptionsMenuOpen { get; set; }
+
     private GameSettings() { }
 
     public void Load()
     {
         if (!File.Exists(SettingsFile))
         {
-            Logger.Log("No gamesettings.cfg found, using defaults", LogLevel.Info);
-            Save(); // Write defaults so user can edit
+            Logger.Log("No gamesettings.cfg found, writing defaults", LogLevel.Info);
+            Save();
             return;
         }
 
@@ -89,7 +102,8 @@ public sealed class GameSettings
             var sb = new StringBuilder();
             sb.AppendLine("# ============================================");
             sb.AppendLine("# SimpleWPFGame - Game Settings");
-            sb.AppendLine("# Edit values below. Restart game to apply.");
+            sb.AppendLine("# Edit values below. Restart to apply display changes.");
+            sb.AppendLine("# Audio/Graphics changes apply instantly.");
             sb.AppendLine("# ============================================");
             sb.AppendLine();
 
@@ -98,15 +112,25 @@ public sealed class GameSettings
             sb.AppendLine($"WindowHeight = {WindowHeight}");
             sb.AppendLine($"GameScreenWidth = {GameScreenWidth}");
             sb.AppendLine($"GameScreenHeight = {GameScreenHeight}");
+            sb.AppendLine($"GameScreenBorderInset = {GameScreenBorderInset}");
             sb.AppendLine($"Fullscreen = {Fullscreen}");
             sb.AppendLine($"VSync = {VSync}");
             sb.AppendLine($"TargetFps = {TargetFps}");
             sb.AppendLine();
 
+            sb.AppendLine("[Graphics]");
+            sb.AppendLine($"# Low, Medium, High");
+            sb.AppendLine($"GraphicsQuality = {GraphicsQuality}");
+            sb.AppendLine($"Shadows = {Shadows}");
+            sb.AppendLine($"ShowGameBorder = {ShowGameBorder}");
+            sb.AppendLine();
+
             sb.AppendLine("[Audio]");
+            sb.AppendLine($"# Volume 0.0 to 1.0");
             sb.AppendLine($"MasterVolume = {MasterVolume}");
             sb.AppendLine($"MusicVolume = {MusicVolume}");
             sb.AppendLine($"SfxVolume = {SfxVolume}");
+            sb.AppendLine($"VfxVolume = {VfxVolume}");
             sb.AppendLine();
 
             sb.AppendLine("[Gameplay]");
@@ -148,12 +172,17 @@ public sealed class GameSettings
             case nameof(WindowHeight): WindowHeight = ParseInt(value, WindowHeight); break;
             case nameof(GameScreenWidth): GameScreenWidth = ParseInt(value, GameScreenWidth); break;
             case nameof(GameScreenHeight): GameScreenHeight = ParseInt(value, GameScreenHeight); break;
+            case nameof(GameScreenBorderInset): GameScreenBorderInset = ParseInt(value, GameScreenBorderInset); break;
             case nameof(Fullscreen): Fullscreen = ParseBool(value, Fullscreen); break;
             case nameof(VSync): VSync = ParseBool(value, VSync); break;
             case nameof(TargetFps): TargetFps = ParseInt(value, TargetFps); break;
+            case nameof(GraphicsQuality): GraphicsQuality = ParseEnum(value, GraphicsQuality); break;
+            case nameof(Shadows): Shadows = ParseBool(value, Shadows); break;
+            case nameof(ShowGameBorder): ShowGameBorder = ParseBool(value, ShowGameBorder); break;
             case nameof(MasterVolume): MasterVolume = ParseFloat(value, MasterVolume); break;
             case nameof(MusicVolume): MusicVolume = ParseFloat(value, MusicVolume); break;
             case nameof(SfxVolume): SfxVolume = ParseFloat(value, SfxVolume); break;
+            case nameof(VfxVolume): VfxVolume = ParseFloat(value, VfxVolume); break;
             case nameof(DefaultMoveSpeed): DefaultMoveSpeed = ParseFloat(value, DefaultMoveSpeed); break;
             case nameof(DefaultCubeSize): DefaultCubeSize = ParseFloat(value, DefaultCubeSize); break;
             case nameof(StickDeadzone): StickDeadzone = ParseFloat(value, StickDeadzone); break;
@@ -182,4 +211,7 @@ public sealed class GameSettings
 
     private static bool ParseBool(string value, bool fallback)
         => bool.TryParse(value, out var result) ? result : fallback;
+
+    private static T ParseEnum<T>(string value, T fallback) where T : struct
+        => Enum.TryParse<T>(value, true, out var result) ? result : fallback;
 }

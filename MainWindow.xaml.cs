@@ -33,13 +33,11 @@ public partial class MainWindow : Window
     private Cube? _greenCube;
     private readonly DispatcherTimer _uiUpdateTimer;
     private readonly DispatcherTimer _controllerCheckTimer;
+    private bool _optionsMenuOpen;
 
     public MainWindow()
     {
         InitializeComponent();
-
-        _gameHost = new GameVisualHost { Width = 1280, Height = 720 };
-        GameCanvas.Children.Add(_gameHost);
 
         // UI update timer (30fps for UI elements, game renders at full speed)
         _uiUpdateTimer = new DispatcherTimer
@@ -67,7 +65,8 @@ public partial class MainWindow : Window
             Logger.Log("MainWindow loaded", LogLevel.Info);
 
             // Load game settings
-            GameSettings.Instance.Load();
+            var settings = GameSettings.Instance;
+            settings.Load();
             Logger.Log("GameSettings loaded", LogLevel.Info);
 
             // Load character settings
@@ -76,9 +75,11 @@ public partial class MainWindow : Window
             CharSettings.Load(charSettingsPath);
 
             // Apply display settings
-            var settings = GameSettings.Instance;
             Width = settings.WindowWidth;
             Height = settings.WindowHeight;
+            WindowSizeText.Text = $"{settings.WindowWidth}x{settings.WindowHeight} | {settings.GameScreenWidth}x{settings.GameScreenHeight}";
+
+            // Create single game host (fixed duplicate bug)
             _gameHost = new GameVisualHost
             {
                 Width = settings.GameScreenWidth,
@@ -119,7 +120,7 @@ public partial class MainWindow : Window
                     DashDuration = playerData.DashDuration
                 };
                 engine.RegisterObject(_blueCube);
-                Logger.Log($"Player cube: {playerData.Name} | Speed={playerData.MoveSpeed} Accel={playerData.AccelerationSpeed} Decel={playerData.DecelerationSpeed}", LogLevel.Info);
+                Logger.Log($"Player: {playerData.Name} | Speed={playerData.MoveSpeed} Accel={playerData.AccelerationSpeed}", LogLevel.Info);
             }
 
             if (enemyData != null)
@@ -134,7 +135,6 @@ public partial class MainWindow : Window
                     DecelerationSpeed = enemyData.DecelerationSpeed
                 };
                 engine.RegisterObject(_redCube);
-                Logger.Log($"Enemy cube: {enemyData.Name} at ({enemyData.StartX}, {enemyData.StartY})", LogLevel.Info);
             }
 
             if (greenData != null)
@@ -149,7 +149,6 @@ public partial class MainWindow : Window
                     DecelerationSpeed = greenData.DecelerationSpeed
                 };
                 engine.RegisterObject(_greenCube);
-                Logger.Log($"Green cube: {greenData.Name} at ({greenData.StartX}, {greenData.StartY})", LogLevel.Info);
             }
 
             // Start engine
@@ -159,8 +158,8 @@ public partial class MainWindow : Window
             _uiUpdateTimer.Start();
             _controllerCheckTimer.Start();
 
-            StatusText.Text = "Game running";
-            Logger.Log("All systems initialized successfully", LogLevel.Info);
+            StatusText.Text = "Game running | ESC = Options";
+            Logger.Log("All systems initialized", LogLevel.Info);
         }
         catch (Exception ex)
         {
@@ -191,11 +190,11 @@ public partial class MainWindow : Window
             var controller = ControllerManager.Instance;
             var settings = GameSettings.Instance;
 
-            // FPS display
+            // FPS
             FpsDisplay.Visibility = settings.ShowFps ? Visibility.Visible : Visibility.Collapsed;
             FpsDisplay.Text = $"FPS: {engine.Fps}";
 
-            // Controller display
+            // Controller
             if (controller.IsConnected)
             {
                 ControllerDisplay.Text = $"Controller: {controller.ActiveControllerType}";
@@ -209,23 +208,16 @@ public partial class MainWindow : Window
                 ControllerButtonText.Text = "Controller: None";
             }
 
-            // Debug info visibility
-            var debugVis = settings.ShowDebugInfo ? Visibility.Visible : Visibility.Collapsed;
-            ObjectCountText.Visibility = debugVis;
-            EngineStatusText.Visibility = debugVis;
-            ControllerButtonText.Visibility = debugVis;
+            // Debug info
             ObjectCountText.Text = $"Objects: {engine.ObjectCount}";
-            EngineStatusText.Text = engine.IsRunning ? "Engine: Running" : "Engine: Stopped";
+            QualityText.Text = $"Quality: {settings.GraphicsQuality}";
+            VSyncText.Text = $"VSync: {(settings.VSync ? "ON" : "OFF")}";
 
-            // Log panel visibility
-            LogScrollViewer.Visibility = settings.ShowLogPanel ? Visibility.Visible : Visibility.Collapsed;
-
-            // Collision debug status
+            // Collision
             CollisionDebugText.Text = settings.ShowCollision ? "Collision: ON [F3]" : "Collision: OFF [F3]";
             CollisionDebugText.Foreground = settings.ShowCollision ? Brushes.LimeGreen : Brushes.Gray;
 
-            // Input status
-            var input = InputManager.Instance;
+            // Input
             InputStatusText.Text = controller.IsConnected ? "Input: Controller" : "Input: Keyboard/Mouse";
 
             // Cube position
@@ -236,7 +228,9 @@ public partial class MainWindow : Window
             var elapsed = TimeSpan.FromSeconds(engine.ElapsedTime);
             TimeDisplay.Text = elapsed.ToString(@"hh\:mm\:ss");
 
-            StatusText.Text = engine.IsRunning ? "Game running | Press ESC to exit" : "Game stopped";
+            StatusText.Text = _optionsMenuOpen
+                ? "Options menu open"
+                : "Game running | ESC = Options";
         }
         catch (Exception ex)
         {
@@ -249,48 +243,159 @@ public partial class MainWindow : Window
         var controller = ControllerManager.Instance;
         if (controller.IsConnected)
         {
-            var buttons = new List<string>();
-            if (controller.IsAPressed) buttons.Add("A");
-            if (controller.IsBPressed) buttons.Add("B");
-            if (controller.IsXPressed) buttons.Add("X");
-            if (controller.IsYPressed) buttons.Add("Y");
-            if (controller.IsStartPressed) buttons.Add("Start");
-            if (controller.IsBackPressed) buttons.Add("Back");
-            if (controller.IsLeftShoulder) buttons.Add("LB");
-            if (controller.IsRightShoulder) buttons.Add("RB");
+            // Start button toggles options menu
+            if (controller.IsStartPressed && !_optionsMenuOpen)
+                OpenOptionsMenu();
         }
     }
 
-    private void OnLogReceived(string message, LogLevel level)
+    // --- Options Menu ---
+
+    private void OpenOptionsMenu()
     {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(() => OnLogReceived(message, level));
-            return;
-        }
+        var settings = GameSettings.Instance;
+        _optionsMenuOpen = true;
+        settings.OptionsMenuOpen = true;
+        OptionsMenuOverlay.Visibility = Visibility.Visible;
 
-        var color = level switch
-        {
-            LogLevel.Error => "#FFFF4444",
-            LogLevel.Warning => "#FFFFFF44",
-            LogLevel.Info => "#FF00FF88",
-            _ => "#FF666666"
-        };
+        // Sync UI to current settings
+        QualityLowBtn.IsEnabled = settings.GraphicsQuality != GraphicsQuality.Low;
+        QualityMedBtn.IsEnabled = settings.GraphicsQuality != GraphicsQuality.Medium;
+        QualityHighBtn.IsEnabled = settings.GraphicsQuality != GraphicsQuality.High;
 
-        LogDisplay.Text += $"<{color}>{message}</{color}>\n";
-        LogScrollViewer.ScrollToEnd();
+        VSyncToggleBtn.Content = settings.VSync ? "ON" : "OFF";
+        ShadowsToggleBtn.Content = settings.Shadows ? "ON" : "OFF";
 
-        // Keep log size manageable
-        if (LogDisplay.Text.Length > 5000)
-            LogDisplay.Text = LogDisplay.Text[^3000..];
+        MasterVolumeSlider.Value = settings.MasterVolume * 100;
+        MusicVolumeSlider.Value = settings.MusicVolume * 100;
+        SfxVolumeSlider.Value = settings.SfxVolume * 100;
+        VfxVolumeSlider.Value = settings.VfxVolume * 100;
+
+        Logger.Log("Options menu opened", LogLevel.Info);
     }
+
+    private void CloseOptionsMenu()
+    {
+        _optionsMenuOpen = false;
+        GameSettings.Instance.OptionsMenuOpen = false;
+        OptionsMenuOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private void OptionsMenuOverlay_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        // Click outside menu closes it
+    }
+
+    private void HandledTrue(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+    }
+
+    private void QualityLow_Click(object sender, RoutedEventArgs e)
+    {
+        GameSettings.Instance.GraphicsQuality = GraphicsQuality.Low;
+        UpdateQualityButtons();
+        Logger.Log("Graphics quality: Low", LogLevel.Info);
+    }
+
+    private void QualityMed_Click(object sender, RoutedEventArgs e)
+    {
+        GameSettings.Instance.GraphicsQuality = GraphicsQuality.Medium;
+        UpdateQualityButtons();
+        Logger.Log("Graphics quality: Medium", LogLevel.Info);
+    }
+
+    private void QualityHigh_Click(object sender, RoutedEventArgs e)
+    {
+        GameSettings.Instance.GraphicsQuality = GraphicsQuality.High;
+        UpdateQualityButtons();
+        Logger.Log("Graphics quality: High", LogLevel.Info);
+    }
+
+    private void UpdateQualityButtons()
+    {
+        var q = GameSettings.Instance.GraphicsQuality;
+        QualityLowBtn.IsEnabled = q != GraphicsQuality.Low;
+        QualityMedBtn.IsEnabled = q != GraphicsQuality.Medium;
+        QualityHighBtn.IsEnabled = q != GraphicsQuality.High;
+    }
+
+    private void VSyncToggle_Click(object sender, RoutedEventArgs e)
+    {
+        var s = GameSettings.Instance;
+        s.VSync = !s.VSync;
+        VSyncToggleBtn.Content = s.VSync ? "ON" : "OFF";
+        Logger.Log($"VSync: {(s.VSync ? "ON" : "OFF")}", LogLevel.Info);
+    }
+
+    private void ShadowsToggle_Click(object sender, RoutedEventArgs e)
+    {
+        var s = GameSettings.Instance;
+        s.Shadows = !s.Shadows;
+        ShadowsToggleBtn.Content = s.Shadows ? "ON" : "OFF";
+        Logger.Log($"Shadows: {(s.Shadows ? "ON" : "OFF")}", LogLevel.Info);
+    }
+
+    private void MasterVolume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!IsLoaded) return;
+        GameSettings.Instance.MasterVolume = (float)(e.NewValue / 100.0);
+        MasterVolumeText.Text = $"{(int)e.NewValue}%";
+    }
+
+    private void MusicVolume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!IsLoaded) return;
+        GameSettings.Instance.MusicVolume = (float)(e.NewValue / 100.0);
+        MusicVolumeText.Text = $"{(int)e.NewValue}%";
+    }
+
+    private void SfxVolume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!IsLoaded) return;
+        GameSettings.Instance.SfxVolume = (float)(e.NewValue / 100.0);
+        SfxVolumeText.Text = $"{(int)e.NewValue}%";
+    }
+
+    private void VfxVolume_Changed(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!IsLoaded) return;
+        GameSettings.Instance.VfxVolume = (float)(e.NewValue / 100.0);
+        VfxVolumeText.Text = $"{(int)e.NewValue}%";
+    }
+
+    private void OptionsSaveClose_Click(object sender, RoutedEventArgs e)
+    {
+        GameSettings.Instance.Save();
+        CloseOptionsMenu();
+        ConsoleWrite("Settings saved", "#FF00FF88");
+    }
+
+    private void OptionsClose_Click(object sender, RoutedEventArgs e)
+    {
+        CloseOptionsMenu();
+    }
+
+    // --- Input ---
 
     private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
+        if (_optionsMenuOpen)
+        {
+            if (e.Key == System.Windows.Input.Key.Escape || e.Key == System.Windows.Input.Key.O)
+            {
+                GameSettings.Instance.Save();
+                CloseOptionsMenu();
+                e.Handled = true;
+            }
+            return;
+        }
+
         switch (e.Key)
         {
             case System.Windows.Input.Key.Escape:
-                Close();
+            case System.Windows.Input.Key.O:
+                OpenOptionsMenu();
                 break;
             case System.Windows.Input.Key.F3:
                 ToggleCollision();
@@ -309,7 +414,7 @@ public partial class MainWindow : Window
         CollisionDebugText.Text = settings.ShowCollision ? "Collision: ON [F3]" : "Collision: OFF [F3]";
         CollisionDebugText.Foreground = settings.ShowCollision ? Brushes.LimeGreen : Brushes.Gray;
         ConsoleWrite(settings.ShowCollision ? "Collision debug: ON" : "Collision debug: OFF", "#FF00FF88");
-        Logger.Log($"Collision debug toggled: {settings.ShowCollision}", LogLevel.Info);
+        Logger.Log($"Collision debug: {settings.ShowCollision}", LogLevel.Info);
     }
 
     // --- Debug Console ---
@@ -332,7 +437,6 @@ public partial class MainWindow : Window
         var cmd = raw.Trim().ToLowerInvariant();
         ConsoleInput.Text = "";
 
-        // Echo the command
         ConsoleWrite($"> {raw}", "#FF555555");
 
         var parts = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -343,22 +447,21 @@ public partial class MainWindow : Window
         {
             case "help":
                 ConsoleWrite("Commands:", "#FF00D4FF");
-                ConsoleWrite("  help           - Show this list", "#FF888888");
-                ConsoleWrite("  collision      - Toggle collision debug (F3)", "#FF888888");
+                ConsoleWrite("  collision      - Toggle collision (F3)", "#FF888888");
                 ConsoleWrite("  fps            - Toggle FPS display", "#FF888888");
-                ConsoleWrite("  objects        - List all game objects", "#FF888888");
-                ConsoleWrite("  position       - Show blue cube position", "#FF888888");
-                ConsoleWrite("  speed <value>  - Set blue cube speed", "#FF888888");
-                ConsoleWrite("  accel <value>  - Set blue cube acceleration", "#FF888888");
-                ConsoleWrite("  decel <value>  - Set blue cube deceleration", "#FF888888");
+                ConsoleWrite("  objects        - List objects", "#FF888888");
+                ConsoleWrite("  position       - Show player pos", "#FF888888");
+                ConsoleWrite("  speed <n>      - Set speed", "#FF888888");
+                ConsoleWrite("  accel <n>      - Set acceleration", "#FF888888");
+                ConsoleWrite("  decel <n>      - Set deceleration", "#FF888888");
+                ConsoleWrite("  quality <l/m/h>- Set graphics", "#FF888888");
+                ConsoleWrite("  vsync          - Toggle VSync", "#FF888888");
+                ConsoleWrite("  shadows        - Toggle shadows", "#FF888888");
+                ConsoleWrite("  volume <0-100> - Master volume", "#FF888888");
                 ConsoleWrite("  clear          - Clear console", "#FF888888");
-                ConsoleWrite("  log <msg>      - Write to log", "#FF888888");
                 ConsoleWrite("  save           - Save settings", "#FF888888");
-                ConsoleWrite("  reset          - Reset cube to start", "#FF888888");
-                ConsoleWrite("", "#FF888888");
-                ConsoleWrite("Actions:", "#FF00D4FF");
-                ConsoleWrite("  Space / B btn  - Dash 50px in stick/key dir", "#FF888888");
-                ConsoleWrite("  (cube spins 360 during dash, then cooldown)", "#FF888888");
+                ConsoleWrite("  reset          - Reset player", "#FF888888");
+                ConsoleWrite("  options        - Open options", "#FF888888");
                 break;
 
             case "collision":
@@ -369,62 +472,84 @@ public partial class MainWindow : Window
             case "fps":
                 var s = GameSettings.Instance;
                 s.ShowFps = !s.ShowFps;
-                ConsoleWrite($"FPS display: {(s.ShowFps ? "ON" : "OFF")}", "#FF00FF88");
+                ConsoleWrite($"FPS: {(s.ShowFps ? "ON" : "OFF")}", "#FF00FF88");
                 break;
 
             case "objects":
             case "obj":
-                var objs = GameEngine.Instance.ObjectCount;
-                ConsoleWrite($"Game objects: {objs}", "#FF00FF88");
+                ConsoleWrite($"Objects: {GameEngine.Instance.ObjectCount}", "#FF00FF88");
                 if (_blueCube != null)
                 {
-                    ConsoleWrite($"  BlueCube pos=({_blueCube.Position.X:F0},{_blueCube.Position.Y:F0}) size={_blueCube.Width} speed={_blueCube.MoveSpeed}", "#FF888888");
-                    var dashState = _blueCube.IsDashing ? "DASHING" : (_blueCube.DashCooldownRemaining > 0 ? $"CD:{_blueCube.DashCooldownRemaining:F1}s" : "Ready");
-                    ConsoleWrite($"  Dash: {dashState} (dist={_blueCube.DashDistance} rot={_blueCube.DashRotationSpeed}cd/s)", "#FF888888");
+                    var dash = _blueCube.IsDashing ? "DASHING" : (_blueCube.DashCooldownRemaining > 0 ? $"CD:{_blueCube.DashCooldownRemaining:F1}s" : "Ready");
+                    ConsoleWrite($"  Blue pos=({_blueCube.Position.X:F0},{_blueCube.Position.Y:F0}) spd={_blueCube.MoveSpeed} dash={dash}", "#FF888888");
                 }
                 if (_redCube != null)
-                    ConsoleWrite($"  RedCube  pos=({_redCube.Position.X:F0},{_redCube.Position.Y:F0}) size={_redCube.Width}", "#FF888888");
+                    ConsoleWrite($"  Red  pos=({_redCube.Position.X:F0},{_redCube.Position.Y:F0})", "#FF888888");
                 if (_greenCube != null)
-                    ConsoleWrite($"  GreenCube pos=({_greenCube.Position.X:F0},{_greenCube.Position.Y:F0}) size={_greenCube.Width}", "#FF888888");
+                    ConsoleWrite($"  Green pos=({_greenCube.Position.X:F0},{_greenCube.Position.Y:F0})", "#FF888888");
                 break;
 
             case "position":
             case "pos":
                 if (_blueCube != null)
-                    ConsoleWrite($"Blue cube: ({(int)_blueCube.Position.X}, {(int)_blueCube.Position.Y}) vel=({_blueCube.Velocity.X:F1},{_blueCube.Velocity.Y:F1})", "#FF00FF88");
+                    ConsoleWrite($"pos=({(int)_blueCube.Position.X},{(int)_blueCube.Position.Y}) vel=({_blueCube.Velocity.X:F1},{_blueCube.Velocity.Y:F1})", "#FF00FF88");
                 break;
 
             case "speed":
                 if (args.Length > 0 && double.TryParse(args[0], System.Globalization.NumberStyles.Float,
                     System.Globalization.CultureInfo.InvariantCulture, out var spd) && _blueCube != null)
-                {
-                    _blueCube.MoveSpeed = spd;
-                    ConsoleWrite($"Blue cube speed: {spd}", "#FF00FF88");
-                }
-                else
-                    ConsoleWrite("Usage: speed <number>", "#FFFF4444");
+                { _blueCube.MoveSpeed = spd; ConsoleWrite($"Speed: {spd}", "#FF00FF88"); }
+                else ConsoleWrite("Usage: speed <number>", "#FFFF4444");
                 break;
 
             case "accel":
                 if (args.Length > 0 && double.TryParse(args[0], System.Globalization.NumberStyles.Float,
                     System.Globalization.CultureInfo.InvariantCulture, out var acc) && _blueCube != null)
-                {
-                    _blueCube.AccelerationSpeed = acc;
-                    ConsoleWrite($"Blue cube acceleration: {acc}", "#FF00FF88");
-                }
-                else
-                    ConsoleWrite("Usage: accel <number>", "#FFFF4444");
+                { _blueCube.AccelerationSpeed = acc; ConsoleWrite($"Acceleration: {acc}", "#FF00FF88"); }
+                else ConsoleWrite("Usage: accel <number>", "#FFFF4444");
                 break;
 
             case "decel":
                 if (args.Length > 0 && double.TryParse(args[0], System.Globalization.NumberStyles.Float,
                     System.Globalization.CultureInfo.InvariantCulture, out var dec) && _blueCube != null)
+                { _blueCube.DecelerationSpeed = dec; ConsoleWrite($"Deceleration: {dec}", "#FF00FF88"); }
+                else ConsoleWrite("Usage: decel <number>", "#FFFF4444");
+                break;
+
+            case "quality":
+                if (args.Length > 0)
                 {
-                    _blueCube.DecelerationSpeed = dec;
-                    ConsoleWrite($"Blue cube deceleration: {dec}", "#FF00FF88");
+                    var q = args[0] switch
+                    {
+                        "l" or "low" => GraphicsQuality.Low,
+                        "m" or "med" or "medium" => GraphicsQuality.Medium,
+                        "h" or "high" => GraphicsQuality.High,
+                        _ => (GraphicsQuality?)null
+                    };
+                    if (q.HasValue)
+                    { GameSettings.Instance.GraphicsQuality = q.Value; ConsoleWrite($"Quality: {q}", "#FF00FF88"); }
+                    else ConsoleWrite("Usage: quality <low/medium/high>", "#FFFF4444");
                 }
-                else
-                    ConsoleWrite("Usage: decel <number>", "#FFFF4444");
+                else ConsoleWrite("Usage: quality <low/medium/high>", "#FFFF4444");
+                break;
+
+            case "vsync":
+                var vs = GameSettings.Instance;
+                vs.VSync = !vs.VSync;
+                ConsoleWrite($"VSync: {(vs.VSync ? "ON" : "OFF")}", "#FF00FF88");
+                break;
+
+            case "shadows":
+                var sh = GameSettings.Instance;
+                sh.Shadows = !sh.Shadows;
+                ConsoleWrite($"Shadows: {(sh.Shadows ? "ON" : "OFF")}", "#FF00FF88");
+                break;
+
+            case "volume":
+                if (args.Length > 0 && float.TryParse(args[0], System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var vol))
+                { GameSettings.Instance.MasterVolume = Math.Clamp(vol / 100f, 0, 1); ConsoleWrite($"Volume: {vol}%", "#FF00FF88"); }
+                else ConsoleWrite("Usage: volume <0-100>", "#FFFF4444");
                 break;
 
             case "clear":
@@ -432,9 +557,8 @@ public partial class MainWindow : Window
                 break;
 
             case "log":
-                var msg = string.Join(' ', args);
-                Logger.Log($"Console: {msg}", LogLevel.Info);
-                ConsoleWrite($"Logged: {msg}", "#FF00FF88");
+                Logger.Log($"Console: {string.Join(' ', args)}", LogLevel.Info);
+                ConsoleWrite("Logged", "#FF00FF88");
                 break;
 
             case "save":
@@ -450,13 +574,17 @@ public partial class MainWindow : Window
                     {
                         _blueCube.Position = new System.Windows.Vector(pData.StartX, pData.StartY);
                         _blueCube.Velocity = new System.Windows.Vector(0, 0);
-                        ConsoleWrite($"Blue cube reset to ({pData.StartX}, {pData.StartY})", "#FF00FF88");
+                        ConsoleWrite($"Reset to ({pData.StartX}, {pData.StartY})", "#FF00FF88");
                     }
                 }
                 break;
 
+            case "options":
+                OpenOptionsMenu();
+                break;
+
             default:
-                ConsoleWrite($"Unknown command: {command}. Type 'help'.", "#FFFF4444");
+                ConsoleWrite($"Unknown: {command}. Type 'help'.", "#FFFF4444");
                 break;
         }
     }
@@ -468,6 +596,29 @@ public partial class MainWindow : Window
 
         if (ConsoleOutput.Text.Length > 4000)
             ConsoleOutput.Text = ConsoleOutput.Text[^2000..];
+    }
+
+    private void OnLogReceived(string message, LogLevel level)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => OnLogReceived(message, level));
+            return;
+        }
+
+        var color = level switch
+        {
+            LogLevel.Error => "#FFFF4444",
+            LogLevel.Warning => "#FFFFFF44",
+            LogLevel.Info => "#FF00FF88",
+            _ => "#FF666666"
+        };
+
+        LogDisplay.Text += $"<{color}>{message}</{color}>\n";
+        LogScrollViewer.ScrollToEnd();
+
+        if (LogDisplay.Text.Length > 5000)
+            LogDisplay.Text = LogDisplay.Text[^3000..];
     }
 
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
