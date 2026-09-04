@@ -229,6 +229,23 @@ public partial class MainWindow : Window
             // Equip player with sword
             _blueCube?.EquipWeapon(new SimpleWPFGame.Combat.Sword());
 
+            // Initialize AI for enemies
+            if (_redCube != null && _blueCube != null)
+            {
+                _redCube.InitializeAI(_blueCube, SimpleWPFGame.AI.AIPersonality.Aggressive, SimpleWPFGame.AI.AIDifficulty.Normal);
+                Logger.Log("Red cube AI initialized (Aggressive)", LogLevel.Info);
+            }
+            if (_greenCube != null && _blueCube != null)
+            {
+                _greenCube.InitializeAI(_blueCube, SimpleWPFGame.AI.AIPersonality.Defensive, SimpleWPFGame.AI.AIDifficulty.Normal);
+                Logger.Log("Green cube AI initialized (Defensive)", LogLevel.Info);
+            }
+            if (_dummyCube != null && _blueCube != null)
+            {
+                _dummyCube.InitializeAI(_blueCube, SimpleWPFGame.AI.AIPersonality.Balanced, SimpleWPFGame.AI.AIDifficulty.Normal);
+                Logger.Log("Dummy cube AI initialized (Balanced)", LogLevel.Info);
+            }
+
             // Start engine
             engine.Start();
 
@@ -852,6 +869,11 @@ public partial class MainWindow : Window
                 ConsoleWrite("  3d grid        - Toggle spatial hash", "#FF00BFFF");
                 ConsoleWrite("  3d reset       - Reset 3D camera", "#FF00BFFF");
                 ConsoleWrite("  3d info        - Show 3D stats", "#FF00BFFF");
+                ConsoleWrite("  ai info        - Show AI brain status", "#FFFF8800");
+                ConsoleWrite("  ai scores      - Show AI action scores", "#FFFF8800");
+                ConsoleWrite("  ai log         - Show AI decision log", "#FFFF8800");
+                ConsoleWrite("  ai difficulty <n> - Set AI difficulty", "#FFFF8800");
+                ConsoleWrite("  ai reset       - Reset AI learning", "#FFFF8800");
                 ConsoleWrite("  clear          - Clear console", "#FF888888");
                 ConsoleWrite("  save           - Save settings", "#FF888888");
                 ConsoleWrite("  reset          - Reset player", "#FF888888");
@@ -1220,10 +1242,109 @@ public partial class MainWindow : Window
                 ConsoleWrite($"Camera: dist={GameSettings.Instance.CameraDistance:F1} angX={GameSettings.Instance.CameraAngleX:F0} angY={GameSettings.Instance.CameraAngleY:F0}", "#FF00BFFF");
                 break;
 
+            case "ai info":
+                {
+                    string info = "=== AI Status ===\n";
+                    if (_redCube?.AIController?.Brain != null)
+                    {
+                        var brain = _redCube.AIController.Brain;
+                        info += $"Red [{brain.Personality}] [{brain.Difficulty}]: Action={_redCube.AIController.CurrentAction}\n";
+                        info += $"  Aggr={brain.Aggression:F2} Caution={brain.Caution:F2} React={brain.ReactionSpeed:F2}\n";
+                        info += $"  Predict={brain.Predictor.PredictedAction} ({brain.Predictor.Confidence:P0}) Adapt={brain.Learner.AdaptationLevel:F2}\n";
+                    }
+                    if (_greenCube?.AIController?.Brain != null)
+                    {
+                        var brain = _greenCube.AIController.Brain;
+                        info += $"Green [{brain.Personality}] [{brain.Difficulty}]: Action={_greenCube.AIController.CurrentAction}\n";
+                        info += $"  Aggr={brain.Aggression:F2} Caution={brain.Caution:F2} React={brain.ReactionSpeed:F2}\n";
+                    }
+                    if (_dummyCube?.AIController?.Brain != null)
+                    {
+                        var brain = _dummyCube.AIController.Brain;
+                        info += $"Dummy [{brain.Personality}] [{brain.Difficulty}]: Action={_dummyCube.AIController.CurrentAction}\n";
+                        info += $"  Adapt={brain.Learner.AdaptationLevel:F2} SkillEst={brain.Learner.PlayerSkillEstimate:F2}\n";
+                    }
+                    ConsoleWrite(info, "#FFFF8800");
+                }
+                break;
+
+            case "ai scores":
+                {
+                    if (_redCube?.AIController?.Brain != null)
+                    {
+                        var ctx = new SimpleWPFGame.AI.AIContext
+                        {
+                            SelfHP = _redCube.Stats.HP, SelfMaxHP = _redCube.Stats.MaxHP,
+                            TargetHP = _blueCube?.Stats.HP ?? 0, TargetMaxHP = _blueCube?.Stats.MaxHP ?? 1,
+                            DistanceToTarget = _blueCube != null ? (_redCube.Position - _blueCube.Position).Length : 999
+                        };
+                        var scores = _redCube.AIController.Brain.GetDebugScores(ctx);
+                        ConsoleWrite("=== Red AI Scores ===", "#FFFF8800");
+                        foreach (var kv in scores.OrderByDescending(x => x.Value).Take(5))
+                            ConsoleWrite($"  {kv.Key}: {kv.Value:F3}", "#FFFF8800");
+                    }
+                }
+                break;
+
+            case "ai log":
+                {
+                    if (_redCube?.AIController?.Brain != null)
+                    {
+                        var log = AI.AIDebugRenderer.Instance.DecisionLog;
+                        ConsoleWrite("=== AI Decision Log ===", "#FFFF8800");
+                        foreach (var entry in log.TakeLast(10))
+                            ConsoleWrite($"  {entry}", "#FFFF8800");
+                    }
+                }
+                break;
+
+            case "ai difficulty easy":
+                SetAIDifficulty(SimpleWPFGame.AI.AIDifficulty.Easy);
+                break;
+            case "ai difficulty normal":
+                SetAIDifficulty(SimpleWPFGame.AI.AIDifficulty.Normal);
+                break;
+            case "ai difficulty hard":
+                SetAIDifficulty(SimpleWPFGame.AI.AIDifficulty.Hard);
+                break;
+            case "ai difficulty expert":
+                SetAIDifficulty(SimpleWPFGame.AI.AIDifficulty.Expert);
+                break;
+            case "ai difficulty nightmare":
+                SetAIDifficulty(SimpleWPFGame.AI.AIDifficulty.Nightmare);
+                break;
+            case "ai difficulty adaptive":
+                SetAIDifficulty(SimpleWPFGame.AI.AIDifficulty.Adaptive);
+                break;
+
+            case "ai reset":
+                _redCube?.AIController?.Reset();
+                _greenCube?.AIController?.Reset();
+                _dummyCube?.AIController?.Reset();
+                ConsoleWrite("All AI brains reset", "#FFFF8800");
+                break;
+
             default:
                 ConsoleWrite($"Unknown: {command}. Type 'help'.", "#FFFF4444");
                 break;
         }
+    }
+
+    private void SetAIDifficulty(SimpleWPFGame.AI.AIDifficulty difficulty)
+    {
+        _redCube?.AIController?.Reset();
+        _greenCube?.AIController?.Reset();
+        _dummyCube?.AIController?.Reset();
+
+        if (_redCube != null && _blueCube != null)
+            _redCube.InitializeAI(_blueCube, SimpleWPFGame.AI.AIPersonality.Aggressive, difficulty);
+        if (_greenCube != null && _blueCube != null)
+            _greenCube.InitializeAI(_blueCube, SimpleWPFGame.AI.AIPersonality.Defensive, difficulty);
+        if (_dummyCube != null && _blueCube != null)
+            _dummyCube.InitializeAI(_blueCube, SimpleWPFGame.AI.AIPersonality.Balanced, difficulty);
+
+        ConsoleWrite($"AI difficulty set to {difficulty}", "#FFFF8800");
+        Logger.Log($"AI difficulty: {difficulty}", LogLevel.Info);
     }
 
     private void ConsoleWrite(string text, string color = "#FF888888")

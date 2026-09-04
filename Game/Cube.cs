@@ -30,6 +30,7 @@ public class Cube : GameObject
     public CharacterStats Stats { get; set; } = new();
     public CharacterActionToggles Actions { get; set; } = new();
     public AIProfile AI { get; set; } = new();
+    public AI.AIController? AIController { get; private set; }
 
     // Combat
     public CombatComponent Combat { get; private set; }
@@ -57,6 +58,31 @@ public class Cube : GameObject
         Actions = actions;
         if (ai != null) AI = ai;
         Combat.SetStats(stats);
+    }
+
+    public void InitializeAI(Cube target, SimpleWPFGame.AI.AIPersonality? personality = null, SimpleWPFGame.AI.AIDifficulty? difficulty = null)
+    {
+        AIController = new SimpleWPFGame.AI.AIController();
+        var p = personality ?? MapStyleToPersonality(AI.Style);
+        var d = difficulty ?? SimpleWPFGame.AI.AIDifficulty.Normal;
+        AIController.Initialize(this, target, p, d);
+    }
+
+    private SimpleWPFGame.AI.AIPersonality MapStyleToPersonality(AICombatStyle style)
+    {
+        return style switch
+        {
+            AICombatStyle.Aggressive => SimpleWPFGame.AI.AIPersonality.Aggressive,
+            AICombatStyle.Defensive => SimpleWPFGame.AI.AIPersonality.Defensive,
+            AICombatStyle.Balanced => SimpleWPFGame.AI.AIPersonality.Balanced,
+            AICombatStyle.Berserker => SimpleWPFGame.AI.AIPersonality.Berserker,
+            AICombatStyle.Assassin => SimpleWPFGame.AI.AIPersonality.Assassin,
+            AICombatStyle.Tank => SimpleWPFGame.AI.AIPersonality.Tank,
+            AICombatStyle.ParryMaster => SimpleWPFGame.AI.AIPersonality.ParryMaster,
+            AICombatStyle.DodgeMaster => SimpleWPFGame.AI.AIPersonality.DodgeMaster,
+            AICombatStyle.CounterMaster => SimpleWPFGame.AI.AIPersonality.CounterMaster,
+            _ => SimpleWPFGame.AI.AIPersonality.Balanced
+        };
     }
 
     public void EquipWeapon(Weapon weapon)
@@ -129,6 +155,10 @@ public class Cube : GameObject
             {
                 UpdateMovement(deltaTime);
             }
+        }
+        else if (AIController != null)
+        {
+            AIController.Update(deltaTime);
         }
 
         if (!IsDashing)
