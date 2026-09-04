@@ -7,6 +7,7 @@ using SimpleWPFGame.Game;
 using SimpleWPFGame.Input;
 using SimpleWPFGame.Logging;
 using SimpleWPFGame.Settings;
+using SimpleWPFGame.UI;
 
 namespace SimpleWPFGame;
 
@@ -107,6 +108,10 @@ public partial class MainWindow : Window
             // Initialize input
             InputManager.Instance.Initialize(GameCanvas);
             Logger.Log("InputManager ready", LogLevel.Info);
+
+            // Initialize tooltip system
+            TooltipManager.Instance.Initialize(this);
+            Logger.Log("TooltipManager ready", LogLevel.Info);
 
             // Initialize controller
             ControllerManager.Instance.Initialize();
@@ -784,6 +789,54 @@ public partial class MainWindow : Window
     {
         if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
             DragMove();
+    }
+
+    private void Window_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        TooltipManager.Instance.UpdatePosition();
+    }
+
+    // --- Tooltip Handlers ---
+
+    private void StatHover_Enter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (sender is System.Windows.FrameworkElement element && element.Tag is string tooltip)
+            TooltipManager.Instance.Show(tooltip);
+    }
+
+    private void ControlMove_Enter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (sender is System.Windows.FrameworkElement element && element.Tag is string tooltip)
+            TooltipManager.Instance.Show(tooltip);
+    }
+
+    private void DashPlayerHover_Enter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        string tooltip = _blueCube?.Actions.DashEnabled == true
+            ? TooltipDescriptions.DashEnabled
+            : TooltipDescriptions.DashDisabled;
+        TooltipManager.Instance.Show(tooltip);
+    }
+
+    private void DashEnemyHover_Enter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        string tooltip = _redCube?.Actions.DashEnabled == true
+            ? TooltipDescriptions.DashEnabled
+            : TooltipDescriptions.DashDisabled;
+        TooltipManager.Instance.Show(tooltip);
+    }
+
+    private void DashNPCHover_Enter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        string tooltip = _greenCube?.Actions.DashEnabled == true
+            ? TooltipDescriptions.DashEnabled
+            : TooltipDescriptions.DashDisabled;
+        TooltipManager.Instance.Show(tooltip);
+    }
+
+    private void Tooltip_Leave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        TooltipManager.Instance.Hide();
     }
 
     private void MinimizeBtn_Click(object sender, RoutedEventArgs e)
