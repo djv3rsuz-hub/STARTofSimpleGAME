@@ -63,13 +63,22 @@ public abstract class GameObject
         context.DrawLine(cornerPen, new Point(cb.Right, cb.Bottom), new Point(cb.Right - tick, cb.Bottom));
         context.DrawLine(cornerPen, new Point(cb.Right, cb.Bottom), new Point(cb.Right, cb.Bottom - tick));
 
-        // Label
-        var label = new FormattedText(
-            $"Collider [{(int)cb.Width}x{(int)cb.Height}]",
+        // Position label (top-left)
+        var posLabel = new FormattedText(
+            $"Pos [{(int)Position.X},{(int)Position.Y}]",
             System.Globalization.CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
             new Typeface("Consolas"),
             9, Brushes.LimeGreen, 96);
-        context.DrawText(label, new Point(cb.Left, cb.Top - 14));
+        context.DrawText(posLabel, new Point(cb.Left, cb.Top - 26));
+
+        // Size label (top-left, below position)
+        var sizeLabel = new FormattedText(
+            $"Col [{(int)cb.Width}x{(int)cb.Height}]",
+            System.Globalization.CultureInfo.InvariantCulture,
+            FlowDirection.LeftToRight,
+            new Typeface("Consolas"),
+            9, Brushes.LimeGreen, 96);
+        context.DrawText(sizeLabel, new Point(cb.Left, cb.Top - 14));
     }
 }

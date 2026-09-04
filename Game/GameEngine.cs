@@ -112,6 +112,9 @@ public sealed class GameEngine
                     obj.Update(DeltaTime);
             }
 
+            // Collision detection + resolution
+            ResolveCollisions();
+
             // Controller input check
             var controller = ControllerManager.Instance;
             if (controller.IsConnected && controller.IsAPressed)
@@ -134,12 +137,82 @@ public sealed class GameEngine
     public void RenderFrame(DrawingContext context)
     {
         var settings = GameSettings.Instance;
-        var bgColor = Config.CharSettings.ParseColor(settings.BackgroundColor);
-        context.DrawRectangle(bgColor, null, new Rect(0, 0, settings.GameScreenWidth, settings.GameScreenHeight));
+        double w = settings.GameScreenWidth;
+        double h = settings.GameScreenHeight;
 
+        // Background
+        var bgColor = Config.CharSettings.ParseColor(settings.BackgroundColor);
+        context.DrawRectangle(bgColor, null, new Rect(0, 0, w, h));
+
+        // Render all objects
         foreach (var obj in _gameObjects)
         {
             obj.Render(context);
+        }
+
+        // Game border - 2px inset from edge, pixel-perfect
+        var borderPen = new Pen(Brushes.DodgerBlue, 2);
+        double inset = 1;
+        context.DrawRectangle(null, borderPen, new Rect(inset, inset, w - inset * 2, h - inset * 2));
+
+        // Corner ticks for border clarity
+        double tick = 12;
+        var cornerPen = new Pen(Brushes.DodgerBlue, 2);
+        // Top-left
+        context.DrawLine(cornerPen, new Point(0, 0), new Point(tick, 0));
+        context.DrawLine(cornerPen, new Point(0, 0), new Point(0, tick));
+        // Top-right
+        context.DrawLine(cornerPen, new Point(w, 0), new Point(w - tick, 0));
+        context.DrawLine(cornerPen, new Point(w, 0), new Point(w, tick));
+        // Bottom-left
+        context.DrawLine(cornerPen, new Point(0, h), new Point(tick, h));
+        context.DrawLine(cornerPen, new Point(0, h), new Point(0, h - tick));
+        // Bottom-right
+        context.DrawLine(cornerPen, new Point(w, h), new Point(w - tick, h));
+        context.DrawLine(cornerPen, new Point(w, h), new Point(w, h - tick));
+    }
+
+    private void ResolveCollisions()
+    {
+        for (int i = 0; i < _gameObjects.Count; i++)
+        {
+            for (int j = i + 1; j < _gameObjects.Count; j++)
+            {
+                var a = _gameObjects[i];
+                var b = _gameObjects[j];
+
+                if (!a.IsActive || !b.IsActive) continue;
+                if (!a.HasCollision || !b.HasCollision) continue;
+                if (!a.Intersects(b)) continue;
+
+                // Calculate overlap on both axes
+                var ab = a.CollisionBounds;
+                var bb = b.CollisionBounds;
+
+                double overlapLeft = ab.Right - bb.Left;
+                double overlapRight = bb.Right - ab.Left;
+                double overlapTop = ab.Bottom - bb.Top;
+                double overlapBottom = bb.Bottom - ab.Top;
+
+                // Find minimum penetration axis
+                double minOverlapX = overlapLeft < overlapRight ? -overlapLeft : overlapRight;
+                double minOverlapY = overlapTop < overlapBottom ? -overlapTop : overlapBottom;
+
+                if (Math.Abs(minOverlapX) < Math.Abs(minOverlapY))
+                {
+                    // Push horizontally
+                    a.Position = new Vector(a.Position.X + minOverlapX, a.Position.Y);
+                    a.Velocity = new Vector(0, a.Velocity.Y);
+                    b.Velocity = new Vector(0, b.Velocity.Y);
+                }
+                else
+                {
+                    // Push vertically
+                    a.Position = new Vector(a.Position.X, a.Position.Y + minOverlapY);
+                    a.Velocity = new Vector(a.Velocity.X, 0);
+                    b.Velocity = new Vector(b.Velocity.X, 0);
+                }
+            }
         }
     }
 }

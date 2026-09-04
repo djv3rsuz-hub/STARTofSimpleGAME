@@ -39,19 +39,20 @@ public class Cube : GameObject
         // Apply velocity to position
         Position += Velocity * deltaTime;
 
-        // Clamp to screen edges
+        // Clamp to screen edges (inside the 1px game border)
         if (ClampToScreen)
         {
             var settings = GameSettings.Instance;
-            double maxX = settings.GameScreenWidth - Width;
-            double maxY = settings.GameScreenHeight - Height;
+            double borderOffset = 2;
+            double maxX = settings.GameScreenWidth - Width - borderOffset;
+            double maxY = settings.GameScreenHeight - Height - borderOffset;
             Position = new Vector(
-                Math.Clamp(Position.X, 0, maxX),
-                Math.Clamp(Position.Y, 0, maxY));
+                Math.Clamp(Position.X, borderOffset, maxX),
+                Math.Clamp(Position.Y, borderOffset, maxY));
 
-            // Stop bouncing at walls
-            if (Position.X <= 0 || Position.X >= maxX) Velocity = new Vector(0, Velocity.Y);
-            if (Position.Y <= 0 || Position.Y >= maxY) Velocity = new Vector(Velocity.X, 0);
+            // Stop at walls
+            if (Position.X <= borderOffset || Position.X >= maxX) Velocity = new Vector(0, Velocity.Y);
+            if (Position.Y <= borderOffset || Position.Y >= maxY) Velocity = new Vector(Velocity.X, 0);
         }
     }
 
