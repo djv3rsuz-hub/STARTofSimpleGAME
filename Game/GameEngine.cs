@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using SimpleWPFGame.Input;
 using SimpleWPFGame.Logging;
 using SimpleWPFGame.Settings;
+using SimpleWPFGame.VFX;
 
 namespace SimpleWPFGame.Game;
 
@@ -129,6 +130,8 @@ public sealed class GameEngine
                     obj.Update(DeltaTime);
             }
 
+            VFXSystem.Instance.Update(DeltaTime);
+
             // Collision
             ResolveCollisions();
             updateSw.Stop();
@@ -182,6 +185,10 @@ public sealed class GameEngine
         {
             obj.Render(context);
         }
+
+        // VFX
+        VFXSystem.Instance.Render(context);
+        VFXSystem.Instance.RenderSceneFlash(context, w, h);
 
         // Game border
         if (settings.ShowGameBorder)

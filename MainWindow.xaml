@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:SimpleWPFGame.UI"
         Title="Simple WPF Game" 
-        Width="1870" Height="1030"
+        Width="1920" Height="1080"
         WindowStartupLocation="CenterScreen"
         WindowState="Normal"
         Background="#FF0A0A1A"
@@ -19,24 +19,27 @@
     
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
 
         <!-- Top Bar -->
-        <Grid Grid.Row="0" Height="40" Background="#FF0D1117">
+        <Grid Grid.Row="0" Background="#FF0D1117">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="200"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="SIMPLE WPF GAME" 
-                       FontSize="16" FontWeight="Bold"
-                       Foreground="#FF00D4FF" VerticalAlignment="Center" Margin="20,0"/>
+            <Border Grid.Column="0" Grid.ColumnSpan="2" Background="#FF0D1117"/>
             
-            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Grid.Column="1" Text="SIMPLE WPF GAME" 
+                       FontSize="16" FontWeight="Bold"
+                       Foreground="#FF00D4FF" VerticalAlignment="Center" Margin="0,0,0,0"/>
+            
+            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock x:Name="FpsDisplay" Text="FPS: 0" 
                            FontSize="14" FontWeight="Bold"
                            Foreground="#FF00FF88" VerticalAlignment="Center" Margin="0,0,20,0"/>
@@ -46,7 +49,7 @@
                            Foreground="#FF666666" FontSize="14" VerticalAlignment="Center"/>
             </StackPanel>
             
-            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
+            <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
                 <TextBlock x:Name="ControllerDisplay" Text="No Controller" 
                            FontSize="14" Foreground="#FFFF6B6B" VerticalAlignment="Center" Margin="0,0,15,0"/>
                 <TextBlock x:Name="TimeDisplay" Text="00:00:00" 
@@ -55,210 +58,284 @@
                         Width="32" Height="28" FontSize="16" FontWeight="Bold"
                         Background="#FF1A1A2E" Foreground="#FF888888"
                         BorderBrush="#FF333333" BorderThickness="1"
-                        Cursor="Hand" Click="MinimizeBtn_Click"
-                        ToolTip="Minimize window"/>
+                        Cursor="Hand" Click="MinimizeBtn_Click"/>
                 <Button x:Name="CloseBtn" Content="&#x2715;" 
                         Width="32" Height="28" Margin="4,0,10,0" FontSize="14" FontWeight="Bold"
                         Background="#FF1A1A2E" Foreground="#FFFF6B6B"
                         BorderBrush="#FF333333" BorderThickness="1"
-                        Cursor="Hand" Click="CloseBtn_Click"
-                        ToolTip="Close application"/>
+                        Cursor="Hand" Click="CloseBtn_Click"/>
             </StackPanel>
         </Grid>
 
-        <!-- Game Area Container -->
-        <Grid Grid.Row="1" Background="#FF0A0A1A">
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="25"/>
+                <ColumnDefinition Width="80"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="25"/>
+                <ColumnDefinition Width="280"/>
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="25"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="25"/>
-            </Grid.RowDefinitions>
 
-            <!-- Left Sidebar -->
-            <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Background="#FF0D1117">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel VerticalAlignment="Top" Margin="8">
-                        <TextBlock Text="CONTROLS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
+            <!-- Tab Navigation Panel (Left) -->
+            <Border Grid.Column="0" Background="#FF080818">
+                <StackPanel VerticalAlignment="Top" Margin="0,8,0,0">
+                    <Button x:Name="TabStats" Tag="StatsPanel" Click="TabBtn_Click" Cursor="Hand"
+                            ToolTip="Character Stats"/>
+                    <Button x:Name="TabNewGame" Tag="NewGamePanel" Click="TabBtn_Click" Cursor="Hand"
+                            ToolTip="New Game"/>
+                    <Button x:Name="TabSave" Tag="SavePanel" Click="TabBtn_Click" Cursor="Hand"
+                            ToolTip="Save Game"/>
+                    <Button x:Name="TabLoad" Tag="LoadPanel" Click="TabBtn_Click" Cursor="Hand"
+                            ToolTip="Load Game"/>
+                    <Button x:Name="TabOptions" Tag="OptionsPanel" Click="TabBtn_Click" Cursor="Hand"
+                            ToolTip="Options"/>
+                    <Separator Background="#FF222222" Margin="8,10"/>
+                    <Button x:Name="TabExit" Tag="ExitPanel" Click="TabBtn_Click" Cursor="Hand"
+                            ToolTip="Exit Game"/>
+                </StackPanel>
+            </Border>
 
-                        <Grid Margin="0,0,0,2" MouseEnter="ControlMove_Enter" Tag="{x:Static ui:TooltipDescriptions.MoveControl}" MouseLeave="Tooltip_Leave">
-                            <TextBlock Text="W/A/S/D" Foreground="#FF888888" FontSize="14"/>
-                        </Grid>
-                        <TextBlock Text="Move Cube" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="ControlMove_Enter" Tag="{x:Static ui:TooltipDescriptions.DashControl}" MouseLeave="Tooltip_Leave">
-                            <TextBlock Text="Space / B" Foreground="#FF888888" FontSize="14"/>
-                        </Grid>
-                        <TextBlock Text="Dash Action" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="ControlMove_Enter" Tag="{x:Static ui:TooltipDescriptions.CollisionDebug}" MouseLeave="Tooltip_Leave">
-                            <TextBlock Text="F3" Foreground="#FF888888" FontSize="14"/>
-                        </Grid>
-                        <TextBlock Text="Collision Debug" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="ControlMove_Enter" Tag="{x:Static ui:TooltipDescriptions.OptionsKey}" MouseLeave="Tooltip_Leave">
-                            <TextBlock Text="ESC" Foreground="#FF888888" FontSize="14"/>
-                        </Grid>
-                        <TextBlock Text="Options Menu" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
-
-                        <Separator Background="#FF222222" Margin="0,5"/>
-                        <TextBlock x:Name="InputStatusText" Text="Input: Keyboard" 
-                                   Foreground="#FF00FF88" FontSize="14" Margin="0,8,0,0"/>
-                        <TextBlock x:Name="CubePositionText" Text="Position: 0, 0" 
-                                   Foreground="#FF666666" FontSize="12" Margin="0,4,0,0"/>
-
-                        <Separator Background="#FF222222" Margin="0,8"/>
+            <!-- Content Panels (Center) -->
+            <Grid Grid.Column="1" Background="#FF0A0A1A">
+                <!-- Stats Panel -->
+                <Border x:Name="StatsPanel" Visibility="Visible" Background="#FF0A0A1A">
+                    <Grid Margin="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
                         <!-- Player Stats -->
-                        <TextBlock Text="PLAYER STATS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,6,0,8"/>
+                        <Border Grid.Column="0" Background="#FF0D1117" CornerRadius="8" Margin="0,0,10,0" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="PLAYER" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="16" Margin="0,0,0,12"/>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.HP}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="HP" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatHP" Grid.Column="1" Text="100.00%" Foreground="#FF00FF88" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.Defence}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Defence" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatDefence" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.Attack}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Attack" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatAttack" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.AttackSpeed}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Atk Speed" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatAttackSpeed" Grid.Column="1" Text="1.00x" Foreground="#FF00FF88" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.Resistance}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Resistance" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatResistance" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.DodgeChance}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Dodge" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatDodge" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.CriticalChance}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Crit Chance" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatCritChance" Grid.Column="1" Text="0.00%" Foreground="#FFFFD700" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.CriticalDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Crit Damage" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatCritDamage" Grid.Column="1" Text="150.00%" Foreground="#FFFFD700" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.MainDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Main Dmg" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatMainDmg" Grid.Column="1" Text="0.00%" Foreground="#FFFF6B6B" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.SkillDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Skill Dmg" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatSkillDmg" Grid.Column="1" Text="0.00%" Foreground="#FF9B59B6" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.ParryDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Parry Dmg" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatParryDmg" Grid.Column="1" Text="0.00%" Foreground="#FF00D4FF" FontSize="14"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,4" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.CounterDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Counter Dmg" Foreground="#FF888888" FontSize="14"/>
+                                    <TextBlock x:Name="StatCounterDmg" Grid.Column="1" Text="0.00%" Foreground="#FFFF8C00" FontSize="14"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
 
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.HP}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="HP" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatHP" Grid.Column="1" Text="100.00%" Foreground="#FF00FF88" FontSize="14"/>
-                        </Grid>
+                        <!-- Enemy Stats -->
+                        <Border Grid.Column="1" Background="#FF0D1117" CornerRadius="8" Margin="10,0,0,0" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="ENEMY" Foreground="#FFFF6B6B" FontWeight="Bold" FontSize="16" Margin="0,0,0,12"/>
+                                <TextBlock x:Name="EnemyHP" Text="HP: 80.00%" Foreground="#FF888888" FontSize="14" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="EnemyAtk" Text="Attack: 20.00%" Foreground="#FF888888" FontSize="14" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="EnemyDef" Text="Defence: 15.00%" Foreground="#FF888888" FontSize="14" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="EnemyCrit" Text="Crit: 12.00%" Foreground="#FFFFD700" FontSize="14" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="EnemyDodge" Text="Dodge: 8.00%" Foreground="#FF888888" FontSize="14" Margin="0,0,0,4"/>
+                                <Separator Background="#FF222222" Margin="0,10"/>
+                                <TextBlock Text="AI ACTIONS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,10,0,8"/>
+                                <TextBlock x:Name="EnemyDashText" Text="Dash: ON" Foreground="#FFFF6B6B" FontSize="14"/>
+                                <Separator Background="#FF222222" Margin="0,10"/>
+                                <TextBlock Text="NPC ALLY" Foreground="#FF00FF88" FontWeight="Bold" FontSize="14" Margin="0,10,0,8"/>
+                                <TextBlock x:Name="GreenHP" Text="HP: 100.00%" Foreground="#FF888888" FontSize="14" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="GreenAtk" Text="Attack: 10.00%" Foreground="#FF888888" FontSize="14" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="GreenDashText" Text="Dash: ON" Foreground="#FF00FF88" FontSize="14"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
 
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.Defence}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Defence" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatDefence" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.Attack}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Attack" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatAttack" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.AttackSpeed}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Atk Speed" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatAttackSpeed" Grid.Column="1" Text="1.00x" Foreground="#FF00FF88" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.Resistance}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Resistance" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatResistance" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.DodgeChance}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Dodge" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatDodge" Grid.Column="1" Text="0.00%" Foreground="#FF00FF88" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.CriticalChance}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Crit Chance" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatCritChance" Grid.Column="1" Text="0.00%" Foreground="#FFFFD700" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.CriticalDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Crit Damage" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatCritDamage" Grid.Column="1" Text="150.00%" Foreground="#FFFFD700" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.MainDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Main Dmg" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatMainDmg" Grid.Column="1" Text="0.00%" Foreground="#FFFF6B6B" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.SkillDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Skill Dmg" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatSkillDmg" Grid.Column="1" Text="0.00%" Foreground="#FF9B59B6" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.ParryDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Parry Dmg" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatParryDmg" Grid.Column="1" Text="0.00%" Foreground="#FF00D4FF" FontSize="14"/>
-                        </Grid>
-
-                        <Grid Margin="0,0,0,2" MouseEnter="StatHover_Enter" Tag="{x:Static ui:TooltipDescriptions.CounterDamage}" MouseLeave="Tooltip_Leave" Cursor="Help">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Counter Dmg" Foreground="#FF888888" FontSize="14"/>
-                            <TextBlock x:Name="StatCounterDmg" Grid.Column="1" Text="0.00%" Foreground="#FFFF8C00" FontSize="14"/>
-                        </Grid>
-
-                        <Separator Background="#FF222222" Margin="0,8"/>
-
-                        <!-- AI Actions -->
-                        <TextBlock Text="AI ACTIONS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,6,0,8"/>
-
-                        <TextBlock x:Name="PlayerDashText" Text="Dash: ON" Foreground="#FF00FF88" FontSize="14" Margin="0,0,0,4"
-                                   MouseEnter="DashPlayerHover_Enter" MouseLeave="Tooltip_Leave" Cursor="Help"/>
-                        <TextBlock x:Name="EnemyDashText" Text="Enemy Dash: ON" Foreground="#FFFF6B6B" FontSize="14" Margin="0,0,0,4"
-                                   MouseEnter="DashEnemyHover_Enter" MouseLeave="Tooltip_Leave" Cursor="Help"/>
-                        <TextBlock x:Name="GreenDashText" Text="NPC Dash: ON" Foreground="#FF00FF88" FontSize="14"
-                                   MouseEnter="DashNPCHover_Enter" MouseLeave="Tooltip_Leave" Cursor="Help"/>
+                <!-- New Game Panel -->
+                <Border x:Name="NewGamePanel" Visibility="Collapsed" Background="#FF0A0A1A">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="400">
+                        <TextBlock Text="NEW GAME" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <TextBlock Text="Start a fresh game with default settings." Foreground="#FF888888" FontSize="14" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <TextBlock Text="This will reset all cubes to their starting positions and stats." Foreground="#FF666666" FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                        <Button Content="Start New Game" Width="200" Height="40" Style="{StaticResource GameButton}" Click="NewGame_Click" HorizontalAlignment="Center"/>
                     </StackPanel>
-                </ScrollViewer>
-            </Border>
+                </Border>
 
-            <!-- Game Screen -->
-            <Border Grid.Column="1" Grid.Row="1" x:Name="GameScreenBorder" 
-                    BorderBrush="#FF00D4FF" BorderThickness="1" 
-                    ClipToBounds="True" Background="Black">
-                <Canvas x:Name="GameCanvas" Width="1870" Height="1030"/>
-            </Border>
+                <!-- Save Panel -->
+                <Border x:Name="SavePanel" Visibility="Collapsed" Background="#FF0A0A1A">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="500">
+                        <TextBlock Text="SAVE GAME" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <TextBlock x:Name="SaveStatus" Text="" Foreground="#FF888888" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                        <StackPanel x:Name="SaveSlotsContainer" Orientation="Vertical"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Load Panel -->
+                <Border x:Name="LoadPanel" Visibility="Collapsed" Background="#FF0A0A1A">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="500">
+                        <TextBlock Text="LOAD GAME" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <TextBlock x:Name="LoadStatus" Text="" Foreground="#FF888888" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                        <StackPanel x:Name="LoadSlotsContainer" Orientation="Vertical"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Options Panel (in-tab version) -->
+                <Border x:Name="OptionsPanel" Visibility="Collapsed" Background="#FF0A0A1A">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="500" Margin="20">
+                            <TextBlock Text="OPTIONS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+                            <!-- Graphics Quality -->
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Graphics Quality" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
+                                           ToolTip="{x:Static ui:TooltipDescriptions.GraphicsQuality}"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button x:Name="QualityLowBtn" Content="Low" Width="70" Margin="0,0,6,0" Style="{StaticResource GameButton}" Click="QualityLow_Click"/>
+                                    <Button x:Name="QualityMedBtn" Content="Med" Width="70" Margin="0,0,6,0" Style="{StaticResource GameButton}" Click="QualityMed_Click"/>
+                                    <Button x:Name="QualityHighBtn" Content="High" Width="70" Style="{StaticResource GameButton}" Click="QualityHigh_Click"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- VSync -->
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="VSync" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
+                                           ToolTip="{x:Static ui:TooltipDescriptions.VSync}"/>
+                                <Button x:Name="VSyncToggleBtn" Width="90" Style="{StaticResource GameButton}" Click="VSyncToggle_Click"/>
+                            </Grid>
+
+                            <!-- Shadows -->
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Shadows" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
+                                           ToolTip="{x:Static ui:TooltipDescriptions.Shadows}"/>
+                                <Button x:Name="ShadowsToggleBtn" Width="90" Style="{StaticResource GameButton}" Click="ShadowsToggle_Click"/>
+                            </Grid>
+
+                            <Separator Background="#FF222222" Margin="0,6,0,16"/>
+
+                            <!-- Volumes -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="55"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Master Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center" ToolTip="{x:Static ui:TooltipDescriptions.MasterVolume}"/>
+                                <Slider x:Name="MasterVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100" Value="100" Margin="12,0" ValueChanged="MasterVolume_Changed" Foreground="#FF00D4FF"/>
+                                <TextBlock x:Name="MasterVolumeText" Grid.Column="2" Text="100%" Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="55"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Music Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center" ToolTip="{x:Static ui:TooltipDescriptions.MusicVolume}"/>
+                                <Slider x:Name="MusicVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100" Value="80" Margin="12,0" ValueChanged="MusicVolume_Changed" Foreground="#FF00D4FF"/>
+                                <TextBlock x:Name="MusicVolumeText" Grid.Column="2" Text="80%" Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="55"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="SFX Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center" ToolTip="{x:Static ui:TooltipDescriptions.SfxVolume}"/>
+                                <Slider x:Name="SfxVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100" Value="100" Margin="12,0" ValueChanged="SfxVolume_Changed" Foreground="#FF00D4FF"/>
+                                <TextBlock x:Name="SfxVolumeText" Grid.Column="2" Text="100%" Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="55"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="VFX Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center" ToolTip="{x:Static ui:TooltipDescriptions.VfxVolume}"/>
+                                <Slider x:Name="VfxVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100" Value="100" Margin="12,0" ValueChanged="VfxVolume_Changed" Foreground="#FF00D4FF"/>
+                                <TextBlock x:Name="VfxVolumeText" Grid.Column="2" Text="100%" Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Grid>
+
+                            <Separator Background="#FF222222" Margin="0,6,0,16"/>
+
+                            <!-- Window Size -->
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Window Size" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center" ToolTip="{x:Static ui:TooltipDescriptions.WindowSize}"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button x:Name="Size720Btn" Content="720p" Width="65" Margin="0,0,6,0" Style="{StaticResource GameButton}" Click="Size720_Click"/>
+                                    <Button x:Name="Size900Btn" Content="900p" Width="65" Margin="0,0,6,0" Style="{StaticResource GameButton}" Click="Size900_Click"/>
+                                    <Button x:Name="Size1080Btn" Content="1080p" Width="70" Style="{StaticResource GameButton}" Click="Size1080_Click"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Button Content="Save Settings" Width="200" Height="36" Style="{StaticResource GameButton}" Click="OptionsSaveClose_Click" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Exit Panel -->
+                <Border x:Name="ExitPanel" Visibility="Collapsed" Background="#FF0A0A1A">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="400">
+                        <TextBlock Text="EXIT GAME" Foreground="#FFFF6B6B" FontWeight="Bold" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                        <TextBlock Text="Are you sure you want to exit?" Foreground="#FF888888" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <TextBlock Text="Unsaved progress will be lost." Foreground="#FF666666" FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Content="Save &amp; Exit" Width="140" Height="36" Margin="0,0,10,0" Style="{StaticResource GameButton}" Click="SaveExit_Click"/>
+                            <Button Content="Exit" Width="100" Height="36" Margin="0,0,10,0" Style="{StaticResource GameButton}" Click="ForceExit_Click"/>
+                            <Button Content="Cancel" Width="100" Height="36" Style="{StaticResource GameButton}" Click="CancelExit_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Game Screen (behind all panels) -->
+                <Border x:Name="GameScreenBorder" Grid.Column="0"
+                        BorderBrush="#FF00D4FF" BorderThickness="1" 
+                        ClipToBounds="True" Background="Black"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Width="1600" Height="900">
+                    <Canvas x:Name="GameCanvas" Width="1600" Height="900"/>
+                </Border>
+            </Grid>
 
             <!-- Right Sidebar -->
-            <Border Grid.Column="2" Grid.Row="0" Grid.RowSpan="3" Background="#FF0D1117">
+            <Border Grid.Column="2" Background="#FF0D1117">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="140"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Debug Info -->
                     <StackPanel Grid.Row="0" Margin="8,12,8,0">
                         <TextBlock Text="DEBUG" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,0,0,8"/>
                         <TextBlock x:Name="ObjectCountText" Text="Objects: 0" Foreground="#FF888888" FontSize="14"/>
@@ -269,7 +346,6 @@
 
                     <Separator Grid.Row="1" Background="#FF222222" Margin="8,6"/>
 
-                    <!-- Debug Console -->
                     <Grid Grid.Row="2" Margin="8,4,8,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -284,7 +360,6 @@
                         </Border>
                     </Grid>
 
-                    <!-- Console input -->
                     <Grid Grid.Row="3" Margin="8,4,8,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -295,20 +370,15 @@
                                  FontFamily="Consolas" FontSize="14"
                                  BorderBrush="#FF00D4FF" BorderThickness="1"
                                  Padding="3,4" VerticalContentAlignment="Center"
-                                 KeyDown="ConsoleInput_KeyDown"
-                                 ToolTip="Type commands: help, collision, fps, speed, etc."/>
+                                 KeyDown="ConsoleInput_KeyDown"/>
                         <Button Grid.Column="1" Content="&#x27A4;" 
                                 Width="28" Margin="4,0,0,0"
                                 Background="#FF00D4FF" Foreground="#FF0A0E14"
                                 FontWeight="Bold" FontSize="14"
-                                Click="ConsoleSend_Click"
-                                ToolTip="Execute command"/>
+                                Click="ConsoleSend_Click"/>
                     </Grid>
 
-                    <Separator Grid.Row="4" Background="#FF222222" Margin="8,6"/>
-
-                    <!-- Log -->
-                    <Grid Grid.Row="5" Margin="8,4,8,10">
+                    <Grid Grid.Row="4" Margin="8,4,8,10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -323,207 +393,21 @@
                     </Grid>
                 </Grid>
             </Border>
-
-            <!-- Top Spacer -->
-            <Border Grid.Column="1" Grid.Row="0" Background="#FF0A0A1A"/>
-            <!-- Bottom Spacer -->
-            <Border Grid.Column="1" Grid.Row="2" Background="#FF0A0A1A"/>
         </Grid>
 
-        <!-- Bottom Status Bar -->
-        <Grid Grid.Row="2" Height="25" Background="#FF0D1117">
+        <!-- Status Bar -->
+        <Grid Grid.Row="2" Background="#FF0D1117">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="250"/>
             </Grid.ColumnDefinitions>
-
             <TextBlock Grid.Column="0" x:Name="StatusText" Text="Ready" 
                        Foreground="#FF666666" FontSize="14" VerticalAlignment="Center" Margin="15,0"/>
-            
-            <TextBlock Grid.Column="1" x:Name="WindowSizeText" Text="1920x1080 | 1870x1030" 
+            <TextBlock Grid.Column="1" x:Name="WindowSizeText" Text="1920x1080 | 1600x900" 
                        Foreground="#FF666666" FontSize="14" VerticalAlignment="Center" 
                        HorizontalAlignment="Right" Margin="0,0,15,0"/>
         </Grid>
 
-        <!-- Options Menu Overlay (hidden by default) -->
-        <Border x:Name="OptionsMenuOverlay" Visibility="Collapsed"
-                Background="#CC0A0A1A" 
-                Grid.Row="0" Grid.RowSpan="3"
-                MouseDown="OptionsMenuOverlay_Click">
-            <Border Background="#FF0D1117" BorderBrush="#FF00D4FF" BorderThickness="2"
-                    Width="650" Height="740" CornerRadius="8"
-                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                    MouseDown="HandledTrue">
-                <Grid Margin="30,25">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Title -->
-                    <TextBlock Grid.Row="0" Text="OPTIONS" FontSize="24" FontWeight="Bold"
-                               Foreground="#FF00D4FF" HorizontalAlignment="Center" Margin="0,0,0,22"/>
-
-                    <!-- Graphics Quality -->
-                    <Grid Grid.Row="1" Margin="0,0,0,14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Graphics Quality" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
-                                   ToolTip="{x:Static ui:TooltipDescriptions.GraphicsQuality}"/>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button x:Name="QualityLowBtn" Content="Low" Width="70" Margin="0,0,6,0"
-                                    Style="{StaticResource GameButton}" Click="QualityLow_Click"
-                                    ToolTip="{x:Static ui:TooltipDescriptions.GraphicsQuality}"/>
-                            <Button x:Name="QualityMedBtn" Content="Med" Width="70" Margin="0,0,6,0"
-                                    Style="{StaticResource GameButton}" Click="QualityMed_Click"
-                                    ToolTip="{x:Static ui:TooltipDescriptions.GraphicsQuality}"/>
-                            <Button x:Name="QualityHighBtn" Content="High" Width="70"
-                                    Style="{StaticResource GameButton}" Click="QualityHigh_Click"
-                                    ToolTip="{x:Static ui:TooltipDescriptions.GraphicsQuality}"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- VSync -->
-                    <Grid Grid.Row="2" Margin="0,0,0,14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="VSync" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
-                                   ToolTip="{x:Static ui:TooltipDescriptions.VSync}"/>
-                        <Button x:Name="VSyncToggleBtn" Width="90" Style="{StaticResource GameButton}" Click="VSyncToggle_Click"
-                                ToolTip="{x:Static ui:TooltipDescriptions.VSync}"/>
-                    </Grid>
-
-                    <!-- Shadows -->
-                    <Grid Grid.Row="3" Margin="0,0,0,14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Shadows" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
-                                   ToolTip="{x:Static ui:TooltipDescriptions.Shadows}"/>
-                        <Button x:Name="ShadowsToggleBtn" Width="90" Style="{StaticResource GameButton}" Click="ShadowsToggle_Click"
-                                ToolTip="{x:Static ui:TooltipDescriptions.Shadows}"/>
-                    </Grid>
-
-                    <Separator Grid.Row="4" Background="#FF222222" Margin="0,6,0,16"/>
-
-                    <!-- Master Volume -->
-                    <Grid Grid.Row="5" Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="55"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Master Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
-                                   ToolTip="{x:Static ui:TooltipDescriptions.MasterVolume}"/>
-                        <Slider x:Name="MasterVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100"
-                                Value="100" Margin="12,0" ValueChanged="MasterVolume_Changed"
-                                Foreground="#FF00D4FF"
-                                ToolTip="{x:Static ui:TooltipDescriptions.MasterVolume}"/>
-                        <TextBlock x:Name="MasterVolumeText" Grid.Column="2" Text="100%" 
-                                   Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    </Grid>
-
-                    <!-- Music Volume -->
-                    <Grid Grid.Row="6" Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="55"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Music Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
-                                   ToolTip="{x:Static ui:TooltipDescriptions.MusicVolume}"/>
-                        <Slider x:Name="MusicVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100"
-                                Value="80" Margin="12,0" ValueChanged="MusicVolume_Changed"
-                                Foreground="#FF00D4FF"
-                                ToolTip="{x:Static ui:TooltipDescriptions.MusicVolume}"/>
-                        <TextBlock x:Name="MusicVolumeText" Grid.Column="2" Text="80%" 
-                                   Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    </Grid>
-
-                    <!-- SFX Volume -->
-                    <Grid Grid.Row="7" Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="55"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="SFX Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
-                                   ToolTip="{x:Static ui:TooltipDescriptions.SfxVolume}"/>
-                        <Slider x:Name="SfxVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100"
-                                Value="100" Margin="12,0" ValueChanged="SfxVolume_Changed"
-                                Foreground="#FF00D4FF"
-                                ToolTip="{x:Static ui:TooltipDescriptions.SfxVolume}"/>
-                        <TextBlock x:Name="SfxVolumeText" Grid.Column="2" Text="100%" 
-                                   Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    </Grid>
-
-                    <!-- VFX Volume -->
-                    <Grid Grid.Row="8" Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="140"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="55"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="VFX Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
-                                   ToolTip="{x:Static ui:TooltipDescriptions.VfxVolume}"/>
-                        <Slider x:Name="VfxVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100"
-                                Value="100" Margin="12,0" ValueChanged="VfxVolume_Changed"
-                                Foreground="#FF00D4FF"
-                                ToolTip="{x:Static ui:TooltipDescriptions.VfxVolume}"/>
-                        <TextBlock x:Name="VfxVolumeText" Grid.Column="2" Text="100%" 
-                                   Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    </Grid>
-
-                    <Separator Grid.Row="9" Background="#FF222222" Margin="0,6,0,16"/>
-
-                    <!-- Window Size -->
-                    <Grid Grid.Row="10" Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Window Size" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"
-                                   ToolTip="{x:Static ui:TooltipDescriptions.WindowSize}"/>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button x:Name="Size720Btn" Content="720p" Width="65" Margin="0,0,6,0"
-                                    Style="{StaticResource GameButton}" Click="Size720_Click"
-                                    ToolTip="{x:Static ui:TooltipDescriptions.WindowSize}"/>
-                            <Button x:Name="Size900Btn" Content="900p" Width="65" Margin="0,0,6,0"
-                                    Style="{StaticResource GameButton}" Click="Size900_Click"
-                                    ToolTip="{x:Static ui:TooltipDescriptions.WindowSize}"/>
-                            <Button x:Name="Size1080Btn" Content="1080p" Width="70"
-                                    Style="{StaticResource GameButton}" Click="Size1080_Click"
-                                    ToolTip="{x:Static ui:TooltipDescriptions.WindowSize}"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Footer -->
-                    <StackPanel Grid.Row="11" Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button Content="Save &amp; Close" Width="160" Height="36" Margin="0,0,10,0"
-                                Style="{StaticResource GameButton}" Click="OptionsSaveClose_Click"
-                                ToolTip="{x:Static ui:TooltipDescriptions.SaveClose}"/>
-                        <Button Content="Close" Width="120" Height="36"
-                                Style="{StaticResource GameButton}" Click="OptionsClose_Click"
-                                ToolTip="{x:Static ui:TooltipDescriptions.CloseMenu}"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Border>
+        <!-- Tooltip overlay (managed by TooltipManager) -->
     </Grid>
 </Window>

@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using SimpleWPFGame.Config;
@@ -9,8 +10,11 @@ using SimpleWPFGame.Logging;
 using SimpleWPFGame.Settings;
 using SimpleWPFGame.UI;
 using SimpleWPFGame.SaveSystem;
+using SimpleWPFGame.VFX;
 
 namespace SimpleWPFGame;
+
+using InputManager = SimpleWPFGame.Input.InputManager;
 
 public class GameVisualHost : FrameworkElement
 {
@@ -52,7 +56,6 @@ public partial class MainWindow : Window
     private Cube? _greenCube;
     private readonly DispatcherTimer _uiUpdateTimer;
     private readonly DispatcherTimer _controllerCheckTimer;
-    private bool _optionsMenuOpen;
 
     public MainWindow()
     {
@@ -113,6 +116,9 @@ public partial class MainWindow : Window
             // Initialize tooltip system
             TooltipManager.Instance.Initialize(this);
             Logger.Log("TooltipManager ready", LogLevel.Info);
+
+            // Initialize tab icon buttons
+            InitializeTabIcons();
 
             // Initialize controller
             ControllerManager.Instance.Initialize();
@@ -191,6 +197,25 @@ public partial class MainWindow : Window
             // Start engine
             engine.Start();
 
+            // Demo VFX effects
+            var vfx = VFXSystem.Instance;
+            double gw = settings.GameScreenWidth;
+            double gh = settings.GameScreenHeight;
+
+            vfx.CreateFire(new System.Windows.Vector(gw * 0.15, gh * 0.85), FirePreset.Torch);
+            vfx.CreateFire(new System.Windows.Vector(gw * 0.85, gh * 0.85), FirePreset.Torch);
+            vfx.CreateSmoke(new System.Windows.Vector(gw * 0.15, gh * 0.7), SmokePreset.Steam);
+            vfx.CreateSmoke(new System.Windows.Vector(gw * 0.85, gh * 0.7), SmokePreset.Steam);
+            vfx.CreateLightning(
+                new System.Windows.Vector(gw * 0.3, gh * 0.05),
+                new System.Windows.Vector(gw * 0.35, gh * 0.3),
+                LightningPreset.Standard);
+            vfx.CreateLaser(
+                new System.Windows.Vector(gw * 0.5, gh * 0.45),
+                new System.Windows.Vector(gw * 0.7, gh * 0.45),
+                LaserPreset.Standard);
+            vfx.CreateWater(new System.Windows.Vector(gw * 0.5, gh * 0.15), WaterPreset.Fountain);
+
             // Start timers
             _uiUpdateTimer.Start();
             _controllerCheckTimer.Start();
@@ -254,13 +279,6 @@ public partial class MainWindow : Window
             CollisionDebugText.Text = settings.ShowCollision ? "Collision: ON [F3]" : "Collision: OFF [F3]";
             CollisionDebugText.Foreground = settings.ShowCollision ? Brushes.LimeGreen : Brushes.Gray;
 
-            // Input
-            InputStatusText.Text = controller.IsConnected ? "Input: Controller" : "Input: Keyboard/Mouse";
-
-            // Cube position
-            if (_blueCube != null)
-                CubePositionText.Text = $"Position: {(int)_blueCube.Position.X}, {(int)_blueCube.Position.Y}";
-
             // Player stats
             if (_blueCube != null)
             {
@@ -279,20 +297,29 @@ public partial class MainWindow : Window
                 StatCounterDmg.Text = $"{s.CounterDamage * 100:F2}%";
             }
 
-            // AI action states
-            if (_blueCube != null)
-                PlayerDashText.Text = $"Dash: {(_blueCube.Actions.DashEnabled ? "ON" : "OFF")}";
+            // Enemy/NPC stats
             if (_redCube != null)
-                EnemyDashText.Text = $"Enemy Dash: {(_redCube.Actions.DashEnabled ? "ON" : "OFF")}";
+            {
+                EnemyHP.Text = $"HP: {_redCube.Stats.HP * 100:F2}%";
+                EnemyAtk.Text = $"Attack: {_redCube.Stats.Attack * 100:F2}%";
+                EnemyDef.Text = $"Defence: {_redCube.Stats.Defence * 100:F2}%";
+                EnemyCrit.Text = $"Crit: {_redCube.Stats.CriticalChance * 100:F2}%";
+                EnemyDodge.Text = $"Dodge: {_redCube.Stats.DodgeChance * 100:F2}%";
+                EnemyDashText.Text = $"Dash: {(_redCube.Actions.DashEnabled ? "ON" : "OFF")}";
+            }
             if (_greenCube != null)
-                GreenDashText.Text = $"NPC Dash: {(_greenCube.Actions.DashEnabled ? "ON" : "OFF")}";
+            {
+                GreenHP.Text = $"HP: {_greenCube.Stats.HP * 100:F2}%";
+                GreenAtk.Text = $"Attack: {_greenCube.Stats.Attack * 100:F2}%";
+                GreenDashText.Text = $"Dash: {(_greenCube.Actions.DashEnabled ? "ON" : "OFF")}";
+            }
 
             // Time
             var elapsed = TimeSpan.FromSeconds(engine.ElapsedTime);
             TimeDisplay.Text = elapsed.ToString(@"hh\:mm\:ss");
 
-            StatusText.Text = _optionsMenuOpen
-                ? "Options menu open"
+            StatusText.Text = _activeTab != "StatsPanel"
+                ? $"Menu: {_activeTab}"
                 : "Game running | ESC = Options";
         }
         catch (Exception ex)
@@ -307,50 +334,26 @@ public partial class MainWindow : Window
         if (controller.IsConnected)
         {
             // Start button toggles options menu
-            if (controller.IsStartPressed && !_optionsMenuOpen)
+            if (controller.IsStartPressed && _activeTab == "StatsPanel")
                 OpenOptionsMenu();
         }
     }
 
-    // --- Options Menu ---
+    // --- Options Menu (via tabs) ---
 
     private void OpenOptionsMenu()
     {
-        var settings = GameSettings.Instance;
-        _optionsMenuOpen = true;
-        settings.OptionsMenuOpen = true;
-        OptionsMenuOverlay.Visibility = Visibility.Visible;
-
-        // Sync UI to current settings
-        QualityLowBtn.IsEnabled = settings.GraphicsQuality != GraphicsQuality.Low;
-        QualityMedBtn.IsEnabled = settings.GraphicsQuality != GraphicsQuality.Medium;
-        QualityHighBtn.IsEnabled = settings.GraphicsQuality != GraphicsQuality.High;
-
-        VSyncToggleBtn.Content = settings.VSync ? "ON" : "OFF";
-        ShadowsToggleBtn.Content = settings.Shadows ? "ON" : "OFF";
-
-        MasterVolumeSlider.Value = settings.MasterVolume * 100;
-        MusicVolumeSlider.Value = settings.MusicVolume * 100;
-        SfxVolumeSlider.Value = settings.SfxVolume * 100;
-        VfxVolumeSlider.Value = settings.VfxVolume * 100;
-
-        Size720Btn.IsEnabled = settings.WindowWidth != 1280 || settings.WindowHeight != 720;
-        Size900Btn.IsEnabled = settings.WindowWidth != 1600 || settings.WindowHeight != 900;
-        Size1080Btn.IsEnabled = settings.WindowWidth != 1920 || settings.WindowHeight != 1080;
-
-        Logger.Log("Options menu opened", LogLevel.Info);
+        SwitchTab("OptionsPanel");
+        Logger.Log("Options opened via tab", LogLevel.Info);
     }
 
     private void CloseOptionsMenu()
     {
-        _optionsMenuOpen = false;
-        GameSettings.Instance.OptionsMenuOpen = false;
-        OptionsMenuOverlay.Visibility = Visibility.Collapsed;
+        SwitchTab("StatsPanel");
     }
 
     private void OptionsMenuOverlay_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        // Click outside menu closes it
     }
 
     private void HandledTrue(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -487,25 +490,35 @@ public partial class MainWindow : Window
     private void OptionsSaveClose_Click(object sender, RoutedEventArgs e)
     {
         GameSettings.Instance.Save();
-        CloseOptionsMenu();
         ConsoleWrite("Settings saved", "#FF00FF88");
+        SwitchTab("StatsPanel");
     }
 
     private void OptionsClose_Click(object sender, RoutedEventArgs e)
     {
-        CloseOptionsMenu();
+        SwitchTab("StatsPanel");
     }
 
     // --- Input ---
 
     private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
-        if (_optionsMenuOpen)
+        if (_activeTab == "OptionsPanel")
         {
             if (e.Key == System.Windows.Input.Key.Escape || e.Key == System.Windows.Input.Key.O)
             {
                 GameSettings.Instance.Save();
-                CloseOptionsMenu();
+                SwitchTab("StatsPanel");
+                e.Handled = true;
+            }
+            return;
+        }
+
+        if (_activeTab != "StatsPanel")
+        {
+            if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                SwitchTab("StatsPanel");
                 e.Handled = true;
             }
             return;
@@ -598,7 +611,7 @@ public partial class MainWindow : Window
         var command = parts[0];
         var args = parts.Length > 1 ? parts[1..] : Array.Empty<string>();
 
-        switch (command)
+        switch (cmd)
         {
             case "help":
                 ConsoleWrite("Commands:", "#FF00D4FF");
@@ -618,6 +631,13 @@ public partial class MainWindow : Window
                 ConsoleWrite("  load [slot]    - Load game (F9)", "#FF888888");
                 ConsoleWrite("  saves          - List save slots", "#FF888888");
                 ConsoleWrite("  delsave <slot> - Delete save", "#FF888888");
+                ConsoleWrite("  vfx fire       - Spawn fire", "#FF888888");
+                ConsoleWrite("  vfx lightning  - Spawn lightning", "#FF888888");
+                ConsoleWrite("  vfx laser      - Spawn laser", "#FF888888");
+                ConsoleWrite("  vfx smoke      - Spawn smoke", "#FF888888");
+                ConsoleWrite("  vfx water      - Spawn water", "#FF888888");
+                ConsoleWrite("  vfx clear      - Remove all VFX", "#FF888888");
+                ConsoleWrite("  vfx info       - Show VFX stats", "#FF888888");
                 ConsoleWrite("  clear          - Clear console", "#FF888888");
                 ConsoleWrite("  save           - Save settings", "#FF888888");
                 ConsoleWrite("  reset          - Reset player", "#FF888888");
@@ -804,6 +824,79 @@ public partial class MainWindow : Window
                 else ConsoleWrite("Usage: delsave <slot>", "#FFFF4444");
                 break;
 
+            case "vfx fire":
+                {
+                    var vfx = VFXSystem.Instance;
+                    var gs = GameSettings.Instance;
+                    double gw = gs.GameScreenWidth;
+                    double gh = gs.GameScreenHeight;
+                    if (args.Length >= 2 && double.TryParse(args[0], out double fx) && double.TryParse(args[1], out double fy))
+                        vfx.CreateFire(new System.Windows.Vector(fx, fy), FirePreset.Standard);
+                    else
+                        vfx.CreateFire(new System.Windows.Vector(gw / 2, gh * 0.8), FirePreset.Standard);
+                    ConsoleWrite("Fire created", "#FFFF8800");
+                }
+                break;
+
+            case "vfx lightning":
+                {
+                    var vfx = VFXSystem.Instance;
+                    var gs = GameSettings.Instance;
+                    double gw = gs.GameScreenWidth;
+                    double gh = gs.GameScreenHeight;
+                    vfx.CreateLightningBolt(
+                        new System.Windows.Vector(gw * 0.3, gh * 0.05),
+                        new System.Windows.Vector(gw * 0.4, gh * 0.4));
+                    ConsoleWrite("Lightning created", "#FF88AAFF");
+                }
+                break;
+
+            case "vfx laser":
+                {
+                    var vfx = VFXSystem.Instance;
+                    var gs = GameSettings.Instance;
+                    double gw = gs.GameScreenWidth;
+                    double gh = gs.GameScreenHeight;
+                    vfx.CreateLaser(
+                        new System.Windows.Vector(gw * 0.3, gh * 0.5),
+                        new System.Windows.Vector(gw * 0.7, gh * 0.5),
+                        LaserPreset.Standard);
+                    ConsoleWrite("Laser created", "#FFFF4444");
+                }
+                break;
+
+            case "vfx smoke":
+                {
+                    var vfx = VFXSystem.Instance;
+                    var gs = GameSettings.Instance;
+                    double gw = gs.GameScreenWidth;
+                    double gh = gs.GameScreenHeight;
+                    vfx.CreateSmoke(new System.Windows.Vector(gw * 0.5, gh * 0.7), SmokePreset.Cloud);
+                    ConsoleWrite("Smoke created", "#FF888888");
+                }
+                break;
+
+            case "vfx water":
+                {
+                    var vfx = VFXSystem.Instance;
+                    var gs = GameSettings.Instance;
+                    double gw = gs.GameScreenWidth;
+                    double gh = gs.GameScreenHeight;
+                    vfx.CreateWater(new System.Windows.Vector(gw * 0.5, gh * 0.15), WaterPreset.Fountain);
+                    ConsoleWrite("Water created", "#FF4488FF");
+                }
+                break;
+
+            case "vfx clear":
+                VFXSystem.Instance.RemoveAll();
+                ConsoleWrite("All VFX cleared", "#FF00FF88");
+                break;
+
+            case "vfx info":
+                var vi = VFXSystem.Instance;
+                ConsoleWrite($"VFX: {vi.ActiveEffectCount} effects, {vi.TotalParticleCount} particles", "#FF00FF88");
+                break;
+
             case "clear":
                 ConsoleOutput.Text = "";
                 break;
@@ -946,5 +1039,263 @@ public partial class MainWindow : Window
     private void CloseBtn_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    // --- Tab Navigation ---
+
+    private void InitializeTabIcons()
+    {
+        var tabIcons = new (Button btn, string symbol, string label, string c1, string c2, string glow)[]
+        {
+            (TabStats, GameIcons.Stats.Symbol, "Stats", GameIcons.Stats.Color1, GameIcons.Stats.Color2, GameIcons.Stats.Glow),
+            (TabNewGame, GameIcons.NewGame.Symbol, "New", GameIcons.NewGame.Color1, GameIcons.NewGame.Color2, GameIcons.NewGame.Glow),
+            (TabSave, GameIcons.Save.Symbol, "Save", GameIcons.Save.Color1, GameIcons.Save.Color2, GameIcons.Save.Glow),
+            (TabLoad, GameIcons.Load.Symbol, "Load", GameIcons.Load.Color1, GameIcons.Load.Color2, GameIcons.Load.Glow),
+            (TabOptions, GameIcons.Options.Symbol, "Options", GameIcons.Options.Color1, GameIcons.Options.Color2, GameIcons.Options.Glow),
+            (TabExit, GameIcons.Exit.Symbol, "Exit", GameIcons.Exit.Color1, GameIcons.Exit.Color2, GameIcons.Exit.Glow),
+        };
+
+        foreach (var (btn, symbol, label, c1, c2, glow) in tabIcons)
+        {
+            var icon = GameIcons.CreateIconButton(symbol, label, c1, c2, glow, 60);
+            btn.Content = icon.Content;
+            btn.Template = icon.Template;
+            btn.Width = icon.Width;
+            btn.Height = icon.Height;
+            btn.Background = icon.Background;
+            btn.BorderBrush = icon.BorderBrush;
+            btn.BorderThickness = icon.BorderThickness;
+            btn.Margin = icon.Margin;
+        }
+
+        // Set default active tab
+        SwitchTab("StatsPanel");
+    }
+
+    private void TabBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string panelName)
+        {
+            if (panelName == "ExitPanel")
+            {
+                SwitchTab(panelName);
+                return;
+            }
+            SwitchTab(panelName);
+        }
+    }
+
+    private string _activeTab = "";
+
+    private void SwitchTab(string panelName)
+    {
+        _activeTab = panelName;
+
+        StatsPanel.Visibility = panelName == "StatsPanel" ? Visibility.Visible : Visibility.Collapsed;
+        NewGamePanel.Visibility = panelName == "NewGamePanel" ? Visibility.Visible : Visibility.Collapsed;
+        SavePanel.Visibility = panelName == "SavePanel" ? Visibility.Visible : Visibility.Collapsed;
+        LoadPanel.Visibility = panelName == "LoadPanel" ? Visibility.Visible : Visibility.Collapsed;
+        OptionsPanel.Visibility = panelName == "OptionsPanel" ? Visibility.Visible : Visibility.Collapsed;
+        ExitPanel.Visibility = panelName == "ExitPanel" ? Visibility.Visible : Visibility.Collapsed;
+
+        if (panelName == "SavePanel") PopulateSaveSlots();
+        if (panelName == "LoadPanel") PopulateLoadSlots();
+        if (panelName == "OptionsPanel") SyncOptionsUI();
+        if (panelName != "StatsPanel") GameScreenBorder.Visibility = Visibility.Collapsed;
+        else GameScreenBorder.Visibility = Visibility.Visible;
+
+        StatusText.Text = panelName switch
+        {
+            "StatsPanel" => "Viewing character stats",
+            "NewGamePanel" => "Start a new game",
+            "SavePanel" => "Select a save slot",
+            "LoadPanel" => "Select a save to load",
+            "OptionsPanel" => "Adjust game settings",
+            "ExitPanel" => "Exit confirmation",
+            _ => "Game running"
+        };
+    }
+
+    private void SyncOptionsUI()
+    {
+        var s = GameSettings.Instance;
+        QualityLowBtn.IsEnabled = s.GraphicsQuality != GraphicsQuality.Low;
+        QualityMedBtn.IsEnabled = s.GraphicsQuality != GraphicsQuality.Medium;
+        QualityHighBtn.IsEnabled = s.GraphicsQuality != GraphicsQuality.High;
+        VSyncToggleBtn.Content = s.VSync ? "ON" : "OFF";
+        ShadowsToggleBtn.Content = s.Shadows ? "ON" : "OFF";
+        MasterVolumeSlider.Value = s.MasterVolume * 100;
+        MusicVolumeSlider.Value = s.MusicVolume * 100;
+        SfxVolumeSlider.Value = s.SfxVolume * 100;
+        VfxVolumeSlider.Value = s.VfxVolume * 100;
+        Size720Btn.IsEnabled = s.WindowWidth != 1280 || s.WindowHeight != 720;
+        Size900Btn.IsEnabled = s.WindowWidth != 1600 || s.WindowHeight != 900;
+        Size1080Btn.IsEnabled = s.WindowWidth != 1920 || s.WindowHeight != 1080;
+    }
+
+    // --- Save/Load Panels ---
+
+    private void PopulateSaveSlots()
+    {
+        SaveSlotsContainer.Children.Clear();
+        var sm = SaveManager.Instance;
+        for (int i = 1; i <= 5; i++)
+        {
+            bool exists = sm.SaveExists(i);
+            string info = exists ? $"Slot {i} - Has data" : $"Slot {i} - Empty";
+            string color = exists ? "#FF888888" : "#FF555555";
+
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4) };
+            var label = new TextBlock { Text = info, Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(color)), FontSize = 14, VerticalAlignment = VerticalAlignment.Center, Width = 200 };
+
+            var saveBtn = new Button
+            {
+                Content = "Save Here",
+                Width = 100, Height = 30,
+                Style = (System.Windows.Style)FindResource("GameButton"),
+                Tag = i,
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+            saveBtn.Click += SaveSlot_Click;
+
+            var delBtn = new Button
+            {
+                Content = "Delete",
+                Width = 70, Height = 30,
+                Style = (System.Windows.Style)FindResource("GameButton"),
+                Tag = i,
+                Margin = new Thickness(6, 0, 0, 0)
+            };
+            delBtn.Click += DeleteSlot_Click;
+
+            row.Children.Add(label);
+            row.Children.Add(saveBtn);
+            if (exists) row.Children.Add(delBtn);
+            SaveSlotsContainer.Children.Add(row);
+        }
+    }
+
+    private void PopulateLoadSlots()
+    {
+        LoadSlotsContainer.Children.Clear();
+        var sm = SaveManager.Instance;
+        for (int i = 1; i <= 5; i++)
+        {
+            bool exists = sm.SaveExists(i);
+            string info = exists ? $"Slot {i} - Has data" : $"Slot {i} - Empty";
+            string color = exists ? "#FF888888" : "#FF555555";
+
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4) };
+            var label = new TextBlock { Text = info, Foreground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(color)), FontSize = 14, VerticalAlignment = VerticalAlignment.Center, Width = 200 };
+
+            var loadBtn = new Button
+            {
+                Content = "Load",
+                Width = 100, Height = 30,
+                Style = (System.Windows.Style)FindResource("GameButton"),
+                Tag = i,
+                IsEnabled = exists,
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+            loadBtn.Click += LoadSlot_Click;
+
+            row.Children.Add(label);
+            row.Children.Add(loadBtn);
+            LoadSlotsContainer.Children.Add(row);
+        }
+    }
+
+    private void SaveSlot_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is int slot)
+        {
+            if (SaveManager.Instance.Save(slot, _blueCube, _redCube, _greenCube))
+            {
+                SaveStatus.Text = $"Saved to slot {slot}!";
+                SaveStatus.Foreground = new SolidColorBrush(System.Windows.Media.Colors.LimeGreen);
+                PopulateSaveSlots();
+            }
+            else
+            {
+                SaveStatus.Text = $"Failed to save to slot {slot}";
+                SaveStatus.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Red);
+            }
+        }
+    }
+
+    private void LoadSlot_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is int slot)
+        {
+            var data = SaveManager.Instance.Load(slot);
+            if (data != null && SaveManager.Instance.ApplyLoadedState(data, _blueCube, _redCube, _greenCube))
+            {
+                LoadStatus.Text = $"Loaded from slot {slot}!";
+                LoadStatus.Foreground = new SolidColorBrush(System.Windows.Media.Colors.LimeGreen);
+                SwitchTab("StatsPanel");
+            }
+            else
+            {
+                LoadStatus.Text = $"Failed to load from slot {slot}";
+                LoadStatus.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Red);
+            }
+        }
+    }
+
+    private void DeleteSlot_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is int slot)
+        {
+            SaveManager.Instance.DeleteSave(slot);
+            SaveStatus.Text = $"Slot {slot} deleted";
+            SaveStatus.Foreground = new SolidColorBrush(System.Windows.Media.Colors.Orange);
+            PopulateSaveSlots();
+        }
+    }
+
+    // --- New Game / Exit ---
+
+    private void NewGame_Click(object sender, RoutedEventArgs e)
+    {
+        // Reset cubes to defaults
+        var pData = CharSettings.GetCharacter("PlayerCube");
+        var eData = CharSettings.GetCharacter("EnemyCube");
+        var gData = CharSettings.GetCharacter("GreenCube");
+
+        if (pData != null && _blueCube != null)
+        {
+            _blueCube.Position = new System.Windows.Vector(pData.StartX, pData.StartY);
+            _blueCube.Velocity = new System.Windows.Vector(0, 0);
+            _blueCube.Stats = new Config.CharacterStats { HP = pData.Stats.HP, Defence = pData.Stats.Defence, Attack = pData.Stats.Attack };
+        }
+        if (eData != null && _redCube != null)
+        {
+            _redCube.Position = new System.Windows.Vector(eData.StartX, eData.StartY);
+            _redCube.Velocity = new System.Windows.Vector(0, 0);
+        }
+        if (gData != null && _greenCube != null)
+        {
+            _greenCube.Position = new System.Windows.Vector(gData.StartX, gData.StartY);
+            _greenCube.Velocity = new System.Windows.Vector(0, 0);
+        }
+
+        SwitchTab("StatsPanel");
+        ConsoleWrite("New game started", "#FF00FF88");
+    }
+
+    private void SaveExit_Click(object sender, RoutedEventArgs e)
+    {
+        SaveManager.Instance.Save(1, _blueCube, _redCube, _greenCube, "Auto Save");
+        Close();
+    }
+
+    private void ForceExit_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private void CancelExit_Click(object sender, RoutedEventArgs e)
+    {
+        SwitchTab("StatsPanel");
     }
 }

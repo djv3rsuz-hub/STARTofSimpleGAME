@@ -17,8 +17,8 @@ public sealed class GameSettings
     // --- Display ---
     public int WindowWidth { get; set; } = 1920;
     public int WindowHeight { get; set; } = 1080;
-    public int GameScreenWidth { get; set; } = 1870;
-    public int GameScreenHeight { get; set; } = 1030;
+    public int GameScreenWidth { get; set; } = 1600;
+    public int GameScreenHeight { get; set; } = 900;
     public int GameScreenBorderInset { get; set; } = 25;
     public bool Fullscreen { get; set; } = false;
     public bool VSync { get; set; } = true;
