@@ -329,7 +329,11 @@
                         ClipToBounds="True" Background="Black"
                         HorizontalAlignment="Center" VerticalAlignment="Center"
                         Width="1600" Height="900">
-                    <Canvas x:Name="GameCanvas" Width="1600" Height="900"/>
+                    <Grid>
+                        <Canvas x:Name="GameCanvas" Width="1600" Height="900"/>
+                        <Viewport3D x:Name="Viewport3D" ClipToBounds="True"
+                                    Visibility="Collapsed"/>
+                    </Grid>
                 </Border>
             </Grid>
 

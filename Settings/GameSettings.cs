@@ -60,6 +60,12 @@ public sealed class GameSettings
     public float ControllerSensitivity { get; set; } = 1.0f;
     public bool InvertMouseY { get; set; } = false;
 
+    // --- 3D Rendering ---
+    public bool Show3DView { get; set; } = false;
+    public double CameraDistance { get; set; } = 10.0;
+    public double CameraAngleX { get; set; } = 30.0;
+    public double CameraAngleY { get; set; } = 0.0;
+
     // --- Colors (stored as hex strings for easy editing) ---
     public string BackgroundColor { get; set; } = "#FF000000";
     public string PlayerColor { get; set; } = "#FF1E90FF";
@@ -173,6 +179,13 @@ public sealed class GameSettings
             sb.AppendLine($"InvertMouseY = {InvertMouseY}");
             sb.AppendLine();
 
+            sb.AppendLine("[3D]");
+            sb.AppendLine($"Show3DView = {Show3DView}");
+            sb.AppendLine($"CameraDistance = {CameraDistance}");
+            sb.AppendLine($"CameraAngleX = {CameraAngleX}");
+            sb.AppendLine($"CameraAngleY = {CameraAngleY}");
+            sb.AppendLine();
+
             sb.AppendLine("[Colors]");
             sb.AppendLine($"# Colors in ARGB hex format (e.g., #FF1E90FF)");
             sb.AppendLine($"BackgroundColor = {BackgroundColor}");
@@ -227,6 +240,10 @@ public sealed class GameSettings
             case nameof(ShowStaminaBar): ShowStaminaBar = ParseBool(value, ShowStaminaBar); break;
             case nameof(ControllerSensitivity): ControllerSensitivity = ParseFloat(value, ControllerSensitivity); break;
             case nameof(InvertMouseY): InvertMouseY = ParseBool(value, InvertMouseY); break;
+            case nameof(Show3DView): Show3DView = ParseBool(value, Show3DView); break;
+            case nameof(CameraDistance): CameraDistance = ParseFloat(value, (float)CameraDistance); break;
+            case nameof(CameraAngleX): CameraAngleX = ParseFloat(value, (float)CameraAngleX); break;
+            case nameof(CameraAngleY): CameraAngleY = ParseFloat(value, (float)CameraAngleY); break;
             case nameof(BackgroundColor): BackgroundColor = value; break;
             case nameof(PlayerColor): PlayerColor = value; break;
             case nameof(EnemyColor): EnemyColor = value; break;

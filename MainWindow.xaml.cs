@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 using SimpleWPFGame.Config;
 using SimpleWPFGame.Game;
@@ -12,6 +13,7 @@ using SimpleWPFGame.UI;
 using SimpleWPFGame.SaveSystem;
 using SimpleWPFGame.VFX;
 using SimpleWPFGame.Combat;
+using SimpleWPFGame.Rendering3D;
 
 namespace SimpleWPFGame;
 
@@ -57,6 +59,7 @@ public partial class MainWindow : Window
     private Cube? _greenCube;
     private Cube? _dummyCube;
     private bool _hitboxDebug;
+    private Scene3D? _scene3D;
     private readonly DispatcherTimer _uiUpdateTimer;
     private readonly DispatcherTimer _controllerCheckTimer;
 
@@ -226,6 +229,9 @@ public partial class MainWindow : Window
 
             // Start engine
             engine.Start();
+
+            // Initialize 3D scene
+            Initialize3D();
 
             // Demo VFX effects
             var vfx = VFXSystem.Instance;
@@ -591,6 +597,9 @@ public partial class MainWindow : Window
             case System.Windows.Input.Key.F5:
                 QuickSave();
                 break;
+            case System.Windows.Input.Key.F7:
+                Toggle3DView();
+                break;
             case System.Windows.Input.Key.F9:
                 QuickLoad();
                 break;
@@ -649,6 +658,105 @@ public partial class MainWindow : Window
         {
             ConsoleWrite("Load failed or no save in slot 1!", "#FFFF4444");
         }
+    }
+
+    private void Initialize3D()
+    {
+        try
+        {
+            var settings = GameSettings.Instance;
+            _scene3D = new Scene3D(settings.GameScreenWidth, settings.GameScreenHeight);
+            MeshRenderer.Instance.SetScene(_scene3D);
+
+            Viewport3D.Children.Clear();
+            Viewport3D.Camera = _scene3D.Camera;
+            Viewport3D.Children.Add(_scene3D.Visual);
+
+            Update3DCamera();
+            PopulateDemo3DScene();
+
+            if (settings.Show3DView)
+                Toggle3DView();
+
+            Logger.Log("3D system initialized", LogLevel.Info);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Failed to initialize 3D", ex);
+        }
+    }
+
+    private void PopulateDemo3DScene()
+    {
+        var renderer = MeshRenderer.Instance;
+        var settings = GameSettings.Instance;
+        double gw = settings.GameScreenWidth;
+        double gh = settings.GameScreenHeight;
+
+        renderer.AddPlane(20, 20, Color.FromRgb(30, 30, 40), new Point3D(0, -1, 0));
+
+        if (_blueCube != null)
+        {
+            var sz = _blueCube.Width / 100.0;
+            renderer.AddCube(sz, Colors.DodgerBlue,
+                new Point3D((_blueCube.Position.X - gw / 2) / 100.0, sz / 2, (_blueCube.Position.Y - gh / 2) / 100.0));
+        }
+        if (_redCube != null)
+        {
+            var sz = _redCube.Width / 100.0;
+            renderer.AddCube(sz, Colors.Red,
+                new Point3D((_redCube.Position.X - gw / 2) / 100.0, sz / 2, (_redCube.Position.Y - gh / 2) / 100.0));
+        }
+        if (_greenCube != null)
+        {
+            var sz = _greenCube.Width / 100.0;
+            renderer.AddCube(sz, Colors.LimeGreen,
+                new Point3D((_greenCube.Position.X - gw / 2) / 100.0, sz / 2, (_greenCube.Position.Y - gh / 2) / 100.0));
+        }
+        if (_dummyCube != null)
+        {
+            var sz = _dummyCube.Width / 100.0;
+            renderer.AddCube(sz, Colors.Gold,
+                new Point3D((_dummyCube.Position.X - gw / 2) / 100.0, sz / 2, (_dummyCube.Position.Y - gh / 2) / 100.0));
+        }
+
+        renderer.AddSphere(0.3, Colors.Yellow, new Point3D(0, 3, 0));
+        renderer.AddCylinder(0.2, 2, Color.FromRgb(100, 100, 120), new Point3D(-3, 0, -2));
+        renderer.AddPyramid(0.8, Color.FromRgb(180, 80, 180), new Point3D(3, 0, -2));
+    }
+
+    private void Toggle3DView()
+    {
+        var settings = GameSettings.Instance;
+        settings.Show3DView = !settings.Show3DView;
+
+        if (settings.Show3DView)
+        {
+            Viewport3D.Visibility = Visibility.Visible;
+            ConsoleWrite("3D View: ON [F7]", "#FF00FF88");
+        }
+        else
+        {
+            Viewport3D.Visibility = Visibility.Collapsed;
+            ConsoleWrite("3D View: OFF [F7]", "#FF00FF88");
+        }
+        Logger.Log($"3D view: {settings.Show3DView}", LogLevel.Info);
+    }
+
+    private void Update3DCamera()
+    {
+        if (_scene3D == null) return;
+        var settings = GameSettings.Instance;
+        double radX = settings.CameraAngleX * Math.PI / 180;
+        double radY = settings.CameraAngleY * Math.PI / 180;
+        double dist = settings.CameraDistance;
+
+        double x = dist * Math.Cos(radX) * Math.Sin(radY);
+        double y = dist * Math.Sin(radX);
+        double z = dist * Math.Cos(radX) * Math.Cos(radY);
+
+        _scene3D.SetCameraPosition(x, y, z);
+        _scene3D.SetCameraLookAt(0, 0, 0);
     }
 
     // --- Debug Console ---

@@ -7,6 +7,7 @@ using SimpleWPFGame.Logging;
 using SimpleWPFGame.Settings;
 using SimpleWPFGame.VFX;
 using SimpleWPFGame.Combat;
+using SimpleWPFGame.Rendering3D;
 
 namespace SimpleWPFGame.Game;
 
@@ -133,6 +134,7 @@ public sealed class GameEngine
 
             VFXSystem.Instance.Update(DeltaTime);
             DamageNumberSystem.Instance.Update(DeltaTime);
+            MeshRenderer.Instance.Update(DeltaTime);
 
             // Combat hit detection
             foreach (var attacker in _gameObjects.OfType<Cube>())
