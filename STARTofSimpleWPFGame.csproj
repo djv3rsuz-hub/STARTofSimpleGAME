@@ -11,6 +11,7 @@
     <RootNamespace>SimpleWPFGame</RootNamespace>
     <Platforms>AnyCPU;x64</Platforms>
     <Configurations>Debug;Release</Configurations>
+    <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
   </PropertyGroup>
 
   <ItemGroup>

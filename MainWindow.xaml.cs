@@ -742,8 +742,17 @@ public partial class MainWindow : Window
 
     private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        // Allow dragging the borderless window
         if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
             DragMove();
+    }
+
+    private void MinimizeBtn_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void CloseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
     }
 }

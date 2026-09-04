@@ -27,7 +27,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="250"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Text="SIMPLE WPF GAME" 
@@ -39,16 +39,28 @@
                            FontSize="14" FontWeight="Bold"
                            Foreground="#FF00FF88" VerticalAlignment="Center" Margin="0,0,20,0"/>
                 <TextBlock x:Name="EngineStatusText" Text="Engine: Ready" 
-                           Foreground="#FF888888" FontSize="12" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                           Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" Margin="0,0,20,0"/>
                 <TextBlock x:Name="CollisionDebugText" Text="Collision: OFF [F3]" 
-                           Foreground="#FF666666" FontSize="11" VerticalAlignment="Center"/>
+                           Foreground="#FF666666" FontSize="14" VerticalAlignment="Center"/>
             </StackPanel>
             
-            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
+            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
                 <TextBlock x:Name="ControllerDisplay" Text="No Controller" 
-                           FontSize="12" Foreground="#FFFF6B6B" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                           FontSize="14" Foreground="#FFFF6B6B" VerticalAlignment="Center" Margin="0,0,15,0"/>
                 <TextBlock x:Name="TimeDisplay" Text="00:00:00" 
-                           Foreground="#FF666666" FontSize="12" VerticalAlignment="Center"/>
+                           Foreground="#FF666666" FontSize="14" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                <Button x:Name="MinimizeBtn" Content="&#x2012;" 
+                        Width="32" Height="28" FontSize="16" FontWeight="Bold"
+                        Background="#FF1A1A2E" Foreground="#FF888888"
+                        BorderBrush="#FF333333" BorderThickness="1"
+                        Cursor="Hand" Click="MinimizeBtn_Click"
+                        ToolTip="Minimize"/>
+                <Button x:Name="CloseBtn" Content="&#x2715;" 
+                        Width="32" Height="28" Margin="4,0,10,0" FontSize="14" FontWeight="Bold"
+                        Background="#FF1A1A2E" Foreground="#FFFF6B6B"
+                        BorderBrush="#FF333333" BorderThickness="1"
+                        Cursor="Hand" Click="CloseBtn_Click"
+                        ToolTip="Close"/>
             </StackPanel>
         </Grid>
 
@@ -68,20 +80,20 @@
             <!-- Left Sidebar -->
             <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Background="#FF0D1117">
                 <StackPanel VerticalAlignment="Center" Margin="8">
-                    <TextBlock Text="CONTROLS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="12" Margin="0,0,0,10"/>
-                    <TextBlock Text="W/A/S/D" Foreground="#FF888888" FontSize="11"/>
-                    <TextBlock Text="Move Cube" Foreground="#FF666666" FontSize="10" Margin="0,0,0,6"/>
-                    <TextBlock Text="Space / B" Foreground="#FF888888" FontSize="11"/>
-                    <TextBlock Text="Dash Action" Foreground="#FF666666" FontSize="10" Margin="0,0,0,6"/>
-                    <TextBlock Text="F3" Foreground="#FF888888" FontSize="11"/>
-                    <TextBlock Text="Collision Debug" Foreground="#FF666666" FontSize="10" Margin="0,0,0,6"/>
-                    <TextBlock Text="ESC" Foreground="#FF888888" FontSize="11"/>
-                    <TextBlock Text="Options Menu" Foreground="#FF666666" FontSize="10" Margin="0,0,0,6"/>
+                    <TextBlock Text="CONTROLS" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
+                    <TextBlock Text="W/A/S/D" Foreground="#FF888888" FontSize="14"/>
+                    <TextBlock Text="Move Cube" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
+                    <TextBlock Text="Space / B" Foreground="#FF888888" FontSize="14"/>
+                    <TextBlock Text="Dash Action" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
+                    <TextBlock Text="F3" Foreground="#FF888888" FontSize="14"/>
+                    <TextBlock Text="Collision Debug" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
+                    <TextBlock Text="ESC" Foreground="#FF888888" FontSize="14"/>
+                    <TextBlock Text="Options Menu" Foreground="#FF666666" FontSize="12" Margin="0,0,0,6"/>
                     <Separator Background="#FF222222" Margin="0,5"/>
                     <TextBlock x:Name="InputStatusText" Text="Input: Keyboard" 
-                               Foreground="#FF00FF88" FontSize="11" Margin="0,8,0,0"/>
+                               Foreground="#FF00FF88" FontSize="14" Margin="0,8,0,0"/>
                     <TextBlock x:Name="CubePositionText" Text="Position: 0, 0" 
-                               Foreground="#FF666666" FontSize="10" Margin="0,4,0,0"/>
+                               Foreground="#FF666666" FontSize="12" Margin="0,4,0,0"/>
                 </StackPanel>
             </Border>
 
@@ -106,11 +118,11 @@
 
                     <!-- Debug Info -->
                     <StackPanel Grid.Row="0" Margin="8,12,8,0">
-                        <TextBlock Text="DEBUG" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="12" Margin="0,0,0,8"/>
-                        <TextBlock x:Name="ObjectCountText" Text="Objects: 0" Foreground="#FF888888" FontSize="11"/>
-                        <TextBlock x:Name="ControllerButtonText" Text="Controller: None" Foreground="#FF888888" FontSize="11" Margin="0,2,0,0"/>
-                        <TextBlock x:Name="QualityText" Text="Quality: High" Foreground="#FF888888" FontSize="11" Margin="0,2,0,0"/>
-                        <TextBlock x:Name="VSyncText" Text="VSync: ON" Foreground="#FF888888" FontSize="11" Margin="0,2,0,0"/>
+                        <TextBlock Text="DEBUG" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="ObjectCountText" Text="Objects: 0" Foreground="#FF888888" FontSize="14"/>
+                        <TextBlock x:Name="ControllerButtonText" Text="Controller: None" Foreground="#FF888888" FontSize="14" Margin="0,2,0,0"/>
+                        <TextBlock x:Name="QualityText" Text="Quality: High" Foreground="#FF888888" FontSize="14" Margin="0,2,0,0"/>
+                        <TextBlock x:Name="VSyncText" Text="VSync: ON" Foreground="#FF888888" FontSize="14" Margin="0,2,0,0"/>
                     </StackPanel>
 
                     <Separator Grid.Row="1" Background="#FF222222" Margin="8,6"/>
@@ -121,7 +133,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="CONSOLE" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="11" Margin="0,0,0,4"/>
+                        <TextBlock Grid.Row="0" Text="CONSOLE" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,0,0,4"/>
                         <Border Grid.Row="1" Background="#FF0A0E14" BorderBrush="#FF222222" BorderThickness="1" CornerRadius="3">
                             <ScrollViewer x:Name="ConsoleScrollViewer" VerticalScrollBarVisibility="Auto" Padding="3">
                                 <TextBlock x:Name="ConsoleOutput" Text="" Foreground="#FF00FF88" FontSize="9"
@@ -138,15 +150,15 @@
                         </Grid.ColumnDefinitions>
                         <TextBox x:Name="ConsoleInput" Grid.Column="0"
                                  Background="#FF0A0E14" Foreground="#FF00FF88"
-                                 FontFamily="Consolas" FontSize="10"
+                                 FontFamily="Consolas" FontSize="14"
                                  BorderBrush="#FF00D4FF" BorderThickness="1"
-                                 Padding="3,1" VerticalContentAlignment="Center"
+                                 Padding="3,4" VerticalContentAlignment="Center"
                                  KeyDown="ConsoleInput_KeyDown"
                                  ToolTip="Type: help, collision, fps, objects, clear"/>
                         <Button Grid.Column="1" Content="&#x27A4;" 
-                                Width="24" Margin="3,0,0,0"
+                                Width="28" Margin="4,0,0,0"
                                 Background="#FF00D4FF" Foreground="#FF0A0E14"
-                                FontWeight="Bold" FontSize="12"
+                                FontWeight="Bold" FontSize="14"
                                 Click="ConsoleSend_Click"/>
                     </Grid>
 
@@ -158,7 +170,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="LOG" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="11" Margin="0,0,0,4"/>
+                        <TextBlock Grid.Row="0" Text="LOG" Foreground="#FF00D4FF" FontWeight="Bold" FontSize="14" Margin="0,0,0,4"/>
                         <Border Grid.Row="1" Background="#FF0A0E14" BorderBrush="#FF222222" BorderThickness="1" CornerRadius="3">
                             <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto" Padding="3">
                                 <TextBlock x:Name="LogDisplay" Text="" Foreground="#FF666666" FontSize="8"
@@ -184,10 +196,10 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" x:Name="StatusText" Text="Ready" 
-                       Foreground="#FF666666" FontSize="11" VerticalAlignment="Center" Margin="15,0"/>
+                       Foreground="#FF666666" FontSize="14" VerticalAlignment="Center" Margin="15,0"/>
             
             <TextBlock Grid.Column="1" x:Name="WindowSizeText" Text="1920x1080 | 1870x1030" 
-                       Foreground="#FF666666" FontSize="11" VerticalAlignment="Center" 
+                       Foreground="#FF666666" FontSize="14" VerticalAlignment="Center" 
                        HorizontalAlignment="Right" Margin="0,0,15,0"/>
         </Grid>
 
@@ -197,10 +209,10 @@
                 Grid.Row="0" Grid.RowSpan="3"
                 MouseDown="OptionsMenuOverlay_Click">
             <Border Background="#FF0D1117" BorderBrush="#FF00D4FF" BorderThickness="2"
-                    Width="600" Height="720" CornerRadius="8"
+                    Width="650" Height="740" CornerRadius="8"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
                     MouseDown="HandledTrue">
-                <Grid Margin="25">
+                <Grid Margin="30,25">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -217,132 +229,132 @@
                     </Grid.RowDefinitions>
 
                     <!-- Title -->
-                    <TextBlock Grid.Row="0" Text="OPTIONS" FontSize="22" FontWeight="Bold"
-                               Foreground="#FF00D4FF" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                    <TextBlock Grid.Row="0" Text="OPTIONS" FontSize="24" FontWeight="Bold"
+                               Foreground="#FF00D4FF" HorizontalAlignment="Center" Margin="0,0,0,22"/>
 
                     <!-- Graphics Quality -->
-                    <Grid Grid.Row="1" Margin="0,0,0,12">
+                    <Grid Grid.Row="1" Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Graphics Quality" Foreground="#FFCCCCCC" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBlock Text="Graphics Quality" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button x:Name="QualityLowBtn" Content="Low" Width="60" Margin="0,0,4,0"
+                            <Button x:Name="QualityLowBtn" Content="Low" Width="70" Margin="0,0,6,0"
                                     Style="{StaticResource GameButton}" Click="QualityLow_Click"/>
-                            <Button x:Name="QualityMedBtn" Content="Med" Width="60" Margin="0,0,4,0"
+                            <Button x:Name="QualityMedBtn" Content="Med" Width="70" Margin="0,0,6,0"
                                     Style="{StaticResource GameButton}" Click="QualityMed_Click"/>
-                            <Button x:Name="QualityHighBtn" Content="High" Width="60"
+                            <Button x:Name="QualityHighBtn" Content="High" Width="70"
                                     Style="{StaticResource GameButton}" Click="QualityHigh_Click"/>
                         </StackPanel>
                     </Grid>
 
                     <!-- VSync -->
-                    <Grid Grid.Row="2" Margin="0,0,0,12">
+                    <Grid Grid.Row="2" Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="VSync" Foreground="#FFCCCCCC" FontSize="13" VerticalAlignment="Center"/>
-                        <Button x:Name="VSyncToggleBtn" Width="80" Style="{StaticResource GameButton}" Click="VSyncToggle_Click"/>
+                        <TextBlock Text="VSync" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"/>
+                        <Button x:Name="VSyncToggleBtn" Width="90" Style="{StaticResource GameButton}" Click="VSyncToggle_Click"/>
                     </Grid>
 
                     <!-- Shadows -->
-                    <Grid Grid.Row="3" Margin="0,0,0,12">
+                    <Grid Grid.Row="3" Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Shadows" Foreground="#FFCCCCCC" FontSize="13" VerticalAlignment="Center"/>
-                        <Button x:Name="ShadowsToggleBtn" Width="80" Style="{StaticResource GameButton}" Click="ShadowsToggle_Click"/>
+                        <TextBlock Text="Shadows" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"/>
+                        <Button x:Name="ShadowsToggleBtn" Width="90" Style="{StaticResource GameButton}" Click="ShadowsToggle_Click"/>
                     </Grid>
 
-                    <Separator Grid.Row="4" Background="#FF222222" Margin="0,5,0,15"/>
+                    <Separator Grid.Row="4" Background="#FF222222" Margin="0,6,0,16"/>
 
                     <!-- Master Volume -->
-                    <Grid Grid.Row="5" Margin="0,0,0,10">
+                    <Grid Grid.Row="5" Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="140"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="55"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Master Volume" Foreground="#FFCCCCCC" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBlock Text="Master Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"/>
                         <Slider x:Name="MasterVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100"
-                                Value="100" Margin="10,0" ValueChanged="MasterVolume_Changed"
+                                Value="100" Margin="12,0" ValueChanged="MasterVolume_Changed"
                                 Foreground="#FF00D4FF"/>
                         <TextBlock x:Name="MasterVolumeText" Grid.Column="2" Text="100%" 
-                                   Foreground="#FF888888" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                   Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Grid>
 
                     <!-- Music Volume -->
-                    <Grid Grid.Row="6" Margin="0,0,0,10">
+                    <Grid Grid.Row="6" Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="140"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="55"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Music Volume" Foreground="#FFCCCCCC" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBlock Text="Music Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"/>
                         <Slider x:Name="MusicVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100"
-                                Value="80" Margin="10,0" ValueChanged="MusicVolume_Changed"
+                                Value="80" Margin="12,0" ValueChanged="MusicVolume_Changed"
                                 Foreground="#FF00D4FF"/>
                         <TextBlock x:Name="MusicVolumeText" Grid.Column="2" Text="80%" 
-                                   Foreground="#FF888888" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                   Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Grid>
 
                     <!-- SFX Volume -->
-                    <Grid Grid.Row="7" Margin="0,0,0,10">
+                    <Grid Grid.Row="7" Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="140"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="55"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="SFX Volume" Foreground="#FFCCCCCC" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBlock Text="SFX Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"/>
                         <Slider x:Name="SfxVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100"
-                                Value="100" Margin="10,0" ValueChanged="SfxVolume_Changed"
+                                Value="100" Margin="12,0" ValueChanged="SfxVolume_Changed"
                                 Foreground="#FF00D4FF"/>
                         <TextBlock x:Name="SfxVolumeText" Grid.Column="2" Text="100%" 
-                                   Foreground="#FF888888" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                   Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Grid>
 
                     <!-- VFX Volume -->
-                    <Grid Grid.Row="8" Margin="0,0,0,15">
+                    <Grid Grid.Row="8" Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="140"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="55"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="VFX Volume" Foreground="#FFCCCCCC" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBlock Text="VFX Volume" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"/>
                         <Slider x:Name="VfxVolumeSlider" Grid.Column="1" Minimum="0" Maximum="100"
-                                Value="100" Margin="10,0" ValueChanged="VfxVolume_Changed"
+                                Value="100" Margin="12,0" ValueChanged="VfxVolume_Changed"
                                 Foreground="#FF00D4FF"/>
                         <TextBlock x:Name="VfxVolumeText" Grid.Column="2" Text="100%" 
-                                   Foreground="#FF888888" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                   Foreground="#FF888888" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Grid>
 
-                    <Separator Grid.Row="9" Background="#FF222222" Margin="0,5,0,15"/>
+                    <Separator Grid.Row="9" Background="#FF222222" Margin="0,6,0,16"/>
 
                     <!-- Window Size -->
-                    <Grid Grid.Row="10" Margin="0,0,0,12">
+                    <Grid Grid.Row="10" Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Window Size" Foreground="#FFCCCCCC" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBlock Text="Window Size" Foreground="#FFCCCCCC" FontSize="14" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button x:Name="Size720Btn" Content="720p" Width="55" Margin="0,0,4,0"
+                            <Button x:Name="Size720Btn" Content="720p" Width="65" Margin="0,0,6,0"
                                     Style="{StaticResource GameButton}" Click="Size720_Click"/>
-                            <Button x:Name="Size900Btn" Content="900p" Width="55" Margin="0,0,4,0"
+                            <Button x:Name="Size900Btn" Content="900p" Width="65" Margin="0,0,6,0"
                                     Style="{StaticResource GameButton}" Click="Size900_Click"/>
-                            <Button x:Name="Size1080Btn" Content="1080p" Width="60"
+                            <Button x:Name="Size1080Btn" Content="1080p" Width="70"
                                     Style="{StaticResource GameButton}" Click="Size1080_Click"/>
                         </StackPanel>
                     </Grid>
 
                     <!-- Footer -->
                     <StackPanel Grid.Row="11" Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button Content="Save &amp; Close" Width="140" Height="32" Margin="0,0,10,0"
+                        <Button Content="Save &amp; Close" Width="160" Height="36" Margin="0,0,10,0"
                                 Style="{StaticResource GameButton}" Click="OptionsSaveClose_Click"/>
-                        <Button Content="Close" Width="100" Height="32"
+                        <Button Content="Close" Width="120" Height="36"
                                 Style="{StaticResource GameButton}" Click="OptionsClose_Click"/>
                     </StackPanel>
                 </Grid>
