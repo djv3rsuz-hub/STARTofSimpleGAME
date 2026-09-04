@@ -41,8 +41,8 @@ public partial class MainWindow : Window
     private const int WS_CAPTION = 0x00C00000;
     private const int WS_THICKFRAME = 0x00040000;
     private const uint SWP_FRAMECHANGED = 0x0020;
-    private const int TARGET_WIDTH = 1920;
-    private const int TARGET_HEIGHT = 1080;
+    private int _targetWidth = 1920;
+    private int _targetHeight = 1080;
 
     private GameVisualHost? _gameHost;
     private Cube? _blueCube;
@@ -288,6 +288,10 @@ public partial class MainWindow : Window
         SfxVolumeSlider.Value = settings.SfxVolume * 100;
         VfxVolumeSlider.Value = settings.VfxVolume * 100;
 
+        Size720Btn.IsEnabled = settings.WindowWidth != 1280 || settings.WindowHeight != 720;
+        Size900Btn.IsEnabled = settings.WindowWidth != 1600 || settings.WindowHeight != 900;
+        Size1080Btn.IsEnabled = settings.WindowWidth != 1920 || settings.WindowHeight != 1080;
+
         Logger.Log("Options menu opened", LogLevel.Info);
     }
 
@@ -379,6 +383,59 @@ public partial class MainWindow : Window
         if (!IsLoaded) return;
         GameSettings.Instance.VfxVolume = (float)(e.NewValue / 100.0);
         VfxVolumeText.Text = $"{(int)e.NewValue}%";
+    }
+
+    private void Size720_Click(object sender, RoutedEventArgs e)
+    {
+        ApplyWindowSize(1280, 720);
+    }
+
+    private void Size900_Click(object sender, RoutedEventArgs e)
+    {
+        ApplyWindowSize(1600, 900);
+    }
+
+    private void Size1080_Click(object sender, RoutedEventArgs e)
+    {
+        ApplyWindowSize(1920, 1080);
+    }
+
+    private void ApplyWindowSize(int width, int height)
+    {
+        try
+        {
+            var settings = GameSettings.Instance;
+            settings.WindowWidth = width;
+            settings.WindowHeight = height;
+            settings.GameScreenWidth = width - (settings.GameScreenBorderInset * 2);
+            settings.GameScreenHeight = height - (settings.GameScreenBorderInset * 2) - 65;
+            settings.Save();
+
+            _targetWidth = width;
+            _targetHeight = height;
+
+            var helper = new System.Windows.Interop.WindowInteropHelper(this);
+            double screenW = SystemParameters.PrimaryScreenWidth;
+            double screenH = SystemParameters.PrimaryScreenHeight;
+            int x = (int)((screenW - width) / 2);
+            int y = (int)((screenH - height) / 2);
+            SetWindowPos(helper.Handle, IntPtr.Zero, x, y, width, height, SWP_FRAMECHANGED);
+
+            Width = width;
+            Height = height;
+            GameCanvas.Width = settings.GameScreenWidth;
+            GameCanvas.Height = settings.GameScreenHeight;
+            _gameHost!.Width = settings.GameScreenWidth;
+            _gameHost.Height = settings.GameScreenHeight;
+
+            WindowSizeText.Text = $"{width}x{height} | {settings.GameScreenWidth}x{settings.GameScreenHeight}";
+            ConsoleWrite($"Window: {width}x{height}", "#FF00FF88");
+            Logger.Log($"Window resized to {width}x{height}", LogLevel.Info);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Failed to resize window", ex);
+        }
     }
 
     private void OptionsSaveClose_Click(object sender, RoutedEventArgs e)
@@ -475,6 +532,7 @@ public partial class MainWindow : Window
                 ConsoleWrite("  vsync          - Toggle VSync", "#FF888888");
                 ConsoleWrite("  shadows        - Toggle shadows", "#FF888888");
                 ConsoleWrite("  volume <0-100> - Master volume", "#FF888888");
+                ConsoleWrite("  window <w> <h> - Set window size", "#FF888888");
                 ConsoleWrite("  clear          - Clear console", "#FF888888");
                 ConsoleWrite("  save           - Save settings", "#FF888888");
                 ConsoleWrite("  reset          - Reset player", "#FF888888");
@@ -569,6 +627,12 @@ public partial class MainWindow : Window
                 else ConsoleWrite("Usage: volume <0-100>", "#FFFF4444");
                 break;
 
+            case "window":
+                if (args.Length >= 2 && int.TryParse(args[0], out var ww) && int.TryParse(args[1], out var hh))
+                { ApplyWindowSize(ww, hh); }
+                else ConsoleWrite("Usage: window <width> <height>", "#FFFF4444");
+                break;
+
             case "clear":
                 ConsoleOutput.Text = "";
                 break;
@@ -650,9 +714,13 @@ public partial class MainWindow : Window
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        // Force exact 1920x1080 total window size, centered on screen
+        // Force exact window size, centered on screen
         try
         {
+            var settings = GameSettings.Instance;
+            _targetWidth = settings.WindowWidth;
+            _targetHeight = settings.WindowHeight;
+
             var helper = new System.Windows.Interop.WindowInteropHelper(this);
             int style = GetWindowLong(helper.Handle, GWL_STYLE);
             style &= ~(WS_CAPTION | WS_THICKFRAME);
@@ -660,11 +728,11 @@ public partial class MainWindow : Window
 
             double screenW = SystemParameters.PrimaryScreenWidth;
             double screenH = SystemParameters.PrimaryScreenHeight;
-            int x = (int)((screenW - TARGET_WIDTH) / 2);
-            int y = (int)((screenH - TARGET_HEIGHT) / 2);
-            SetWindowPos(helper.Handle, IntPtr.Zero, x, y, TARGET_WIDTH, TARGET_HEIGHT, SWP_FRAMECHANGED);
+            int x = (int)((screenW - _targetWidth) / 2);
+            int y = (int)((screenH - _targetHeight) / 2);
+            SetWindowPos(helper.Handle, IntPtr.Zero, x, y, _targetWidth, _targetHeight, SWP_FRAMECHANGED);
 
-            Logger.Log($"Window: {TARGET_WIDTH}x{TARGET_HEIGHT} centered on screen", LogLevel.Info);
+            Logger.Log($"Window: {_targetWidth}x{_targetHeight} centered on screen", LogLevel.Info);
         }
         catch (Exception ex)
         {

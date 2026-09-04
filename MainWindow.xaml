@@ -197,7 +197,7 @@
                 Grid.Row="0" Grid.RowSpan="3"
                 MouseDown="OptionsMenuOverlay_Click">
             <Border Background="#FF0D1117" BorderBrush="#FF00D4FF" BorderThickness="2"
-                    Width="600" Height="620" CornerRadius="8"
+                    Width="600" Height="720" CornerRadius="8"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
                     MouseDown="HandledTrue">
                 <Grid Margin="25">
@@ -209,8 +209,11 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <!-- Title -->
@@ -316,8 +319,27 @@
                                    Foreground="#FF888888" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Grid>
 
+                    <Separator Grid.Row="9" Background="#FF222222" Margin="0,5,0,15"/>
+
+                    <!-- Window Size -->
+                    <Grid Grid.Row="10" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Window Size" Foreground="#FFCCCCCC" FontSize="13" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button x:Name="Size720Btn" Content="720p" Width="55" Margin="0,0,4,0"
+                                    Style="{StaticResource GameButton}" Click="Size720_Click"/>
+                            <Button x:Name="Size900Btn" Content="900p" Width="55" Margin="0,0,4,0"
+                                    Style="{StaticResource GameButton}" Click="Size900_Click"/>
+                            <Button x:Name="Size1080Btn" Content="1080p" Width="60"
+                                    Style="{StaticResource GameButton}" Click="Size1080_Click"/>
+                        </StackPanel>
+                    </Grid>
+
                     <!-- Footer -->
-                    <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <StackPanel Grid.Row="11" Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button Content="Save &amp; Close" Width="140" Height="32" Margin="0,0,10,0"
                                 Style="{StaticResource GameButton}" Click="OptionsSaveClose_Click"/>
                         <Button Content="Close" Width="100" Height="32"

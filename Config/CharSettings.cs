@@ -8,10 +8,10 @@ public class CharacterData
     public string Name { get; set; } = "Unknown";
     public double StartX { get; set; }
     public double StartY { get; set; }
-    public double Size { get; set; } = 80;
-    public double MoveSpeed { get; set; } = 300;
-    public double AccelerationSpeed { get; set; } = 0;
-    public double DecelerationSpeed { get; set; } = 0;
+    public double Size { get; set; } = 60;
+    public double MoveSpeed { get; set; } = 600;
+    public double AccelerationSpeed { get; set; } = 6000;
+    public double DecelerationSpeed { get; set; } = 3000;
     public bool Controllable { get; set; }
     public Brush Color { get; set; } = Brushes.White;
     public Brush BorderColor { get; set; } = Brushes.White;
@@ -41,10 +41,10 @@ public static class CharSettings
                 Name = _ini.GetString(sectionName, "Name", sectionName),
                 StartX = _ini.GetDouble(sectionName, "StartX", 0),
                 StartY = _ini.GetDouble(sectionName, "StartY", 0),
-                Size = _ini.GetDouble(sectionName, "Size", 80),
-                MoveSpeed = _ini.GetFloat(sectionName, "MoveSpeed", 300),
-                AccelerationSpeed = _ini.GetDouble(sectionName, "AccelerationSpeed", 0),
-                DecelerationSpeed = _ini.GetDouble(sectionName, "DecelerationSpeed", 0),
+                Size = _ini.GetDouble(sectionName, "Size", 60),
+                MoveSpeed = _ini.GetFloat(sectionName, "MoveSpeed", 600),
+                AccelerationSpeed = _ini.GetDouble(sectionName, "AccelerationSpeed", 6000),
+                DecelerationSpeed = _ini.GetDouble(sectionName, "DecelerationSpeed", 3000),
                 Controllable = _ini.GetBool(sectionName, "Controllable", false),
                 Color = ParseColor(_ini.GetString(sectionName, "Color", "White")),
                 BorderColor = ParseColor(_ini.GetString(sectionName, "BorderColor", "White")),

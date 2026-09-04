@@ -36,8 +36,8 @@ public sealed class GameSettings
     public float VfxVolume { get; set; } = 1.0f;
 
     // --- Gameplay ---
-    public float DefaultMoveSpeed { get; set; } = 350f;
-    public float DefaultCubeSize { get; set; } = 80f;
+    public float DefaultMoveSpeed { get; set; } = 600f;
+    public float DefaultCubeSize { get; set; } = 60f;
     public float StickDeadzone { get; set; } = 0.15f;
     public bool ShowFps { get; set; } = true;
     public bool ShowDebugInfo { get; set; } = true;
