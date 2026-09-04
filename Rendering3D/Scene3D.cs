@@ -29,9 +29,14 @@ public class Scene3D
         Viewport.Camera = Camera;
 
         SceneLights = new Model3DGroup();
-        SceneLights.Children.Add(new AmbientLight(Color.FromRgb(80, 80, 80)));
-        SceneLights.Children.Add(new DirectionalLight(Colors.White, new Vector3D(-1, -2, -1)));
-        SceneLights.Children.Add(new DirectionalLight(Color.FromRgb(60, 60, 80), new Vector3D(1, -1, 1)));
+        SceneLights.Children.Add(new AmbientLight(Color.FromRgb(60, 60, 80)));
+        SceneLights.Children.Add(new DirectionalLight(Color.FromRgb(255, 250, 240), new Vector3D(-1, -2, -1)));
+        SceneLights.Children.Add(new DirectionalLight(Color.FromRgb(80, 100, 140), new Vector3D(1, -1, 1)));
+        SceneLights.Children.Add(new DirectionalLight(Color.FromRgb(40, 40, 60), new Vector3D(0, 1, 0)));
+        var pl = new PointLight(Color.FromRgb(100, 150, 200), new Point3D(0, 4, 0));
+        pl.Range = 15;
+        SceneLights.Children.Add(pl);
+        SceneLights.Children.Add(new SpotLight(Color.FromRgb(200, 180, 140), new Point3D(0, 6, 0), new Vector3D(0, -1, 0), 30, 15));
 
         SceneModels = new Model3DGroup();
 

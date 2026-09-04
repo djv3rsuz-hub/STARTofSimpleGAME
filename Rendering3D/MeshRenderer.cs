@@ -101,6 +101,48 @@ public class MeshRenderer
         return obj;
     }
 
+    public MeshObject AddShinyCube(double size, Color color, Point3D position, double specularPower = 64)
+    {
+        var mesh = MeshFactory.CreateCube(size);
+        mesh.Color = color;
+        mesh.SpecularPower = specularPower;
+        var obj = new MeshObject(mesh, new Transform3DComponent { Position = position });
+
+        if (_scene != null)
+            obj.ModelGroup = _scene.AddMesh(mesh, obj.Transform);
+
+        _objects[obj.Id] = obj;
+        return obj;
+    }
+
+    public MeshObject AddGlowingCube(double size, Color color, Color emissive, Point3D position)
+    {
+        var mesh = MeshFactory.CreateCube(size);
+        mesh.Color = color;
+        mesh.EmissiveColor = emissive;
+        var obj = new MeshObject(mesh, new Transform3DComponent { Position = position });
+
+        if (_scene != null)
+            obj.ModelGroup = _scene.AddMesh(mesh, obj.Transform);
+
+        _objects[obj.Id] = obj;
+        return obj;
+    }
+
+    public MeshObject AddTransparentCube(double size, Color color, Point3D position, double opacity = 0.5)
+    {
+        var mesh = MeshFactory.CreateCube(size);
+        mesh.Color = color;
+        mesh.Opacity = opacity;
+        var obj = new MeshObject(mesh, new Transform3DComponent { Position = position });
+
+        if (_scene != null)
+            obj.ModelGroup = _scene.AddMesh(mesh, obj.Transform);
+
+        _objects[obj.Id] = obj;
+        return obj;
+    }
+
     public MeshObject? GetObject(string id)
     {
         _objects.TryGetValue(id, out var obj);

@@ -60,6 +60,14 @@ STARTofSimpleWPFGame/
 │   ├── GameIcons.cs        # Anime-style tab icons
 │   ├── TooltipManager.cs   # Custom cursor-following tooltip
 │   └── TooltipDescriptions.cs  # All tooltip text (centralized)
+├── AI/                     # Advanced AI system
+│   ├── AIBrain.cs          # Utility AI core
+│   ├── AIMemory.cs         # Player pattern tracking
+│   ├── AIPredictor.cs      # Markov-chain prediction
+│   ├── AILearner.cs        # Adaptive difficulty
+│   ├── AIActionEvaluator.cs # 16-action scoring
+│   ├── AIController.cs     # Decision execution
+│   └── AIDebug.cs          # Debug overlay
 ├── VFX/                    # Visual effects
 │   ├── Particle.cs         # Single particle
 │   ├── VFXSystem.cs        # Particle manager
@@ -215,6 +223,73 @@ CameraAngleY = 0.0      // Yaw
 
 ---
 
+## AI System
+
+### Architecture
+```
+AI/
+├── AIBrain.cs          # Utility AI core: personality, difficulty, action scoring
+├── AIMemory.cs         # Player pattern tracking, action history, transition prediction
+├── AIPredictor.cs      # Markov-chain player action prediction
+├── AILearner.cs        # Adaptive difficulty, player skill estimation
+├── AIActionEvaluator.cs # 16-action scoring with 6 bonus categories
+├── AIController.cs     # Decision execution, context building, movement
+└── AIDebug.cs          # Debug overlay, decision log, status text
+```
+
+### Initialization
+```csharp
+// Auto-initialized on enemy cubes in MainWindow
+cube.InitializeAI(targetCube, AIPersonality.Aggressive, AIDifficulty.Normal);
+
+// Or manually
+var brain = new AIBrain();
+brain.Initialize(AIPersonality.Balanced, AIDifficulty.Hard);
+brain.Update(context, deltaTime);
+AIAction action = brain.GetChosenAction(context);
+```
+
+### AI Personalities (10)
+- **Balanced** - Well-rounded, adaptive
+- **Aggressive** - High aggression, seeks damage
+- **Defensive** - Cautious, blocks/parries more
+- **Berserker** - Low HP = high damage
+- **Assassin** - Fast, dodges frequently
+- **Tank** - High defense, slow attacks
+- **ParryMaster** - Prioritizes parry/counter
+- **DodgeMaster** - Dodges everything
+- **CounterMaster** - Punishes mistakes
+
+### AI Difficulties (6)
+- **Easy** - Slow reactions, poor accuracy
+- **Normal** - Balanced
+- **Hard** - Faster reactions, better predictions
+- **Expert** - Near-perfect timing
+- **Nightmare** - Frame-perfect parries
+- **Adaptive** - Learns player patterns
+
+### AI Actions (16)
+Attack, HeavyAttack, Block, Parry, Dodge, Dash, DashAttack, Wait, Reposition, Chase, Retreat, Heal, Taunt, GuardBreak, Feint, PerfectParry
+
+### Console Commands
+- `ai info` - Show AI brain status, personality, difficulty
+- `ai scores` - Show top 5 action scores
+- `ai log` - Show recent AI decisions
+- `ai difficulty <easy|normal|hard|expert|nightmare|adaptive>` - Change difficulty
+- `ai reset` - Reset all AI learning
+
+### AI Pattern Tracking
+```csharp
+// Memory tracks player patterns
+AIMemory memory = new AIMemory();
+memory.RecordAction(AIAction.Attack);
+double aggression = memory.GetPlayerAggression(20);  // 0.0-1.0
+double pattern = memory.GetPlayerPatternScore("AttackBlockAttack");
+AIAction predicted = memory.PredictNextPlayerAction(3);
+```
+
+---
+
 ## How to Add New Features
 
 ### Add a New Stat
@@ -248,11 +323,14 @@ CameraAngleY = 0.0      // Yaw
 |------|-------------|--------------|
 | `charsettings.ini` | Character stats, AI, resistances | Changing cube properties |
 | `GameSettings.cs` | All game settings + 3D camera | Adding new settings |
-| `Cube.cs` | Combat, movement, dash, rendering | Changing cube behavior |
+| `Cube.cs` | Combat, movement, dash, AI | Changing cube behavior |
 | `GameEngine.cs` | Game loop, collision, combat | Changing game rules |
 | `MainWindow.xaml` | Tab UI layout | Changing UI |
-| `MainWindow.xaml.cs` | UI logic, console, 3D | Adding commands/features |
+| `MainWindow.xaml.cs` | UI logic, console, 3D, AI | Adding commands/features |
 | `CombatSystem.cs` | Combat state machine | Changing combat logic |
+| `AIBrain.cs` | Utility AI core, scoring | Changing AI decisions |
+| `AIController.cs` | AI execution, context | Changing AI behavior |
+| `AIMemory.cs` | Player pattern tracking | Changing memory system |
 | `MeshFactory.cs` | 3D mesh generation | Adding 3D primitives |
 | `TooltipDescriptions.cs` | All tooltip text | Adding/changing tooltips |
 | `SaveData.cs` | Save file format | Adding new save fields |

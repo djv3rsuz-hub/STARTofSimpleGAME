@@ -12,6 +12,8 @@ public class MeshData
     public PointCollection TextureCoordinates { get; set; } = new();
     public Color Color { get; set; } = Colors.White;
     public double Opacity { get; set; } = 1.0;
+    public double SpecularPower { get; set; } = 32.0;
+    public Color EmissiveColor { get; set; } = Colors.Black;
 
     public MeshData() { }
 
@@ -31,10 +33,27 @@ public class MeshData
             TextureCoordinates = TextureCoordinates
         };
 
-        var material = new DiffuseMaterial(new SolidColorBrush(Color));
-        var model = new GeometryModel3D(mesh, material)
+        var materialGroup = new MaterialGroup();
+        materialGroup.Children.Add(new DiffuseMaterial(new SolidColorBrush(Color)));
+        
+        if (SpecularPower > 0)
+            materialGroup.Children.Add(new SpecularMaterial(new SolidColorBrush(Colors.White), SpecularPower));
+        
+        if (EmissiveColor != Colors.Black)
+            materialGroup.Children.Add(new EmissiveMaterial(new SolidColorBrush(EmissiveColor)));
+
+        if (Opacity < 1.0)
         {
-            BackMaterial = material
+            var brush = new SolidColorBrush(Color) { Opacity = Opacity };
+            materialGroup.Children.Clear();
+            materialGroup.Children.Add(new DiffuseMaterial(brush));
+            if (SpecularPower > 0)
+                materialGroup.Children.Add(new SpecularMaterial(new SolidColorBrush(Colors.White), SpecularPower));
+        }
+
+        var model = new GeometryModel3D(mesh, materialGroup)
+        {
+            BackMaterial = materialGroup
         };
 
         return model;

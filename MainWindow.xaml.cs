@@ -874,6 +874,7 @@ public partial class MainWindow : Window
                 ConsoleWrite("  ai log         - Show AI decision log", "#FFFF8800");
                 ConsoleWrite("  ai difficulty <n> - Set AI difficulty", "#FFFF8800");
                 ConsoleWrite("  ai reset       - Reset AI learning", "#FFFF8800");
+                ConsoleWrite("  ai 3d          - Render AI debug in 3D", "#FFFF8800");
                 ConsoleWrite("  clear          - Clear console", "#FF888888");
                 ConsoleWrite("  save           - Save settings", "#FF888888");
                 ConsoleWrite("  reset          - Reset player", "#FF888888");
@@ -1322,6 +1323,16 @@ public partial class MainWindow : Window
                 _greenCube?.AIController?.Reset();
                 _dummyCube?.AIController?.Reset();
                 ConsoleWrite("All AI brains reset", "#FFFF8800");
+                break;
+
+            case "ai 3d":
+                {
+                    if (_redCube?.AIController?.Brain != null)
+                        AI.AIDebugRenderer.Instance.Render3DDebug(_redCube, _blueCube);
+                    if (_greenCube?.AIController?.Brain != null)
+                        AI.AIDebugRenderer.Instance.Render3DDebug(_greenCube, _blueCube);
+                    ConsoleWrite("AI 3D debug rendered", "#FFFF8800");
+                }
                 break;
 
             default:
