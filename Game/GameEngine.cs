@@ -29,6 +29,9 @@ public sealed class GameEngine
     private double _updateTime;
     private double _renderTime;
 
+    // Frame-perfect timing
+    private readonly Stopwatch _frameSw = new();
+
     public event Action<double>? OnFrameUpdate;
     public event Action<double, int>? OnRenderReady;
     public event Action<int>? OnFpsUpdated;
@@ -64,6 +67,8 @@ public sealed class GameEngine
         _lastTick = _stopwatch.ElapsedMilliseconds;
         _running = true;
         _gameLoop.Start();
+        _frameSw.Start();
+        Rendering3D.FramePerfectTimer.Instance.Start();
 
         Logger.Log("Game engine started", LogLevel.Info);
     }
@@ -135,6 +140,8 @@ public sealed class GameEngine
             VFXSystem.Instance.Update(DeltaTime);
             DamageNumberSystem.Instance.Update(DeltaTime);
             MeshRenderer.Instance.Update(DeltaTime);
+
+            Rendering3D.FramePerfectTimer.Instance.Tick();
 
             if (GameSettings.Instance.Show3DView && GameWorld3D.Instance.IsInitialized)
             {

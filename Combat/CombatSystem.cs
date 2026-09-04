@@ -208,20 +208,22 @@ public class CombatComponent
 
     public void Update(double deltaTime)
     {
-        switch (State)
+        try
         {
-            case CombatState.Attacking:
-            case CombatState.ComboAttacking:
-                UpdateAttack(deltaTime);
-                break;
-            case CombatState.Dodging:
-                UpdateDodge(deltaTime);
-                break;
-            case CombatState.Blocking:
-                UpdateBlock(deltaTime);
-                break;
-            case CombatState.Parrying:
-                UpdateParry(deltaTime);
+            switch (State)
+            {
+                case CombatState.Attacking:
+                case CombatState.ComboAttacking:
+                    UpdateAttack(deltaTime);
+                    break;
+                case CombatState.Dodging:
+                    UpdateDodge(deltaTime);
+                    break;
+                case CombatState.Blocking:
+                    UpdateBlock(deltaTime);
+                    break;
+                case CombatState.Parrying:
+                    UpdateParry(deltaTime);
                 break;
             case CombatState.Countering:
                 UpdateCounter(deltaTime);
@@ -233,6 +235,12 @@ public class CombatComponent
 
         if (IsAttacking)
             UpdateHitboxes();
+        }
+        catch (Exception ex)
+        {
+            Logging.Logger.LogError("Combat update error", ex);
+            ResetState();
+        }
     }
 
     private void UpdateAttack(double deltaTime)

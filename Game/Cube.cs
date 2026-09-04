@@ -108,6 +108,8 @@ public class Cube : GameObject
     {
         if (!IsActive) return;
 
+        deltaTime = Math.Clamp(deltaTime, 0, 0.1);
+
         Combat.OwnerPosition = new Vector(Position.X + Width / 2, Position.Y + Height / 2);
         Combat.OwnerRotation = FacingAngle;
         Combat.Update(deltaTime);
@@ -131,6 +133,18 @@ public class Cube : GameObject
 
         if (!IsDashing)
             Position += Velocity * deltaTime;
+
+        double maxSpeed = 2000;
+        if (double.IsNaN(Position.X) || double.IsNaN(Position.Y) || double.IsInfinity(Position.X) || double.IsInfinity(Position.Y))
+        {
+            Position = new Vector(100, 100);
+            Velocity = new Vector(0, 0);
+        }
+        if (Math.Abs(Velocity.X) > maxSpeed || Math.Abs(Velocity.Y) > maxSpeed)
+        {
+            double len = Velocity.Length;
+            if (len > 0) Velocity = Velocity / len * maxSpeed;
+        }
 
         if (ClampToScreen)
         {
