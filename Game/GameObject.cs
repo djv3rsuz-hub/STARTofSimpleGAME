@@ -10,6 +10,7 @@ public abstract class GameObject
     public Vector Velocity { get; set; }
     public double Width { get; set; }
     public double Height { get; set; }
+    public double Rotation { get; set; } = 0;
     public bool IsActive { get; set; } = true;
     public bool HasCollision { get; set; } = true;
     public Rect Bounds => new(Position.X, Position.Y, Width, Height);

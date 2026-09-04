@@ -17,6 +17,10 @@ public class CharacterData
     public Brush BorderColor { get; set; } = Brushes.White;
     public double BorderThickness { get; set; } = 1;
     public bool ClampToScreen { get; set; } = true;
+    public double DashDistance { get; set; } = 50;
+    public double DashRotationSpeed { get; set; } = 2160;
+    public double DashCooldown { get; set; } = 0.8;
+    public double DashDuration { get; set; } = 0.12;
 }
 
 public static class CharSettings
@@ -45,7 +49,11 @@ public static class CharSettings
                 Color = ParseColor(_ini.GetString(sectionName, "Color", "White")),
                 BorderColor = ParseColor(_ini.GetString(sectionName, "BorderColor", "White")),
                 BorderThickness = _ini.GetDouble(sectionName, "BorderThickness", 1),
-                ClampToScreen = _ini.GetBool(sectionName, "ClampToScreen", true)
+                ClampToScreen = _ini.GetBool(sectionName, "ClampToScreen", true),
+                DashDistance = _ini.GetDouble(sectionName, "DashDistance", 50),
+                DashRotationSpeed = _ini.GetDouble(sectionName, "DashRotationSpeed", 2160),
+                DashCooldown = _ini.GetDouble(sectionName, "DashCooldown", 0.8),
+                DashDuration = _ini.GetDouble(sectionName, "DashDuration", 0.12)
             };
 
             _characters[sectionName] = data;

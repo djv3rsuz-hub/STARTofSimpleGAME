@@ -112,7 +112,11 @@ public partial class MainWindow : Window
                 {
                     MoveSpeed = playerData.MoveSpeed,
                     AccelerationSpeed = playerData.AccelerationSpeed,
-                    DecelerationSpeed = playerData.DecelerationSpeed
+                    DecelerationSpeed = playerData.DecelerationSpeed,
+                    DashDistance = playerData.DashDistance,
+                    DashRotationSpeed = playerData.DashRotationSpeed,
+                    DashCooldown = playerData.DashCooldown,
+                    DashDuration = playerData.DashDuration
                 };
                 engine.RegisterObject(_blueCube);
                 Logger.Log($"Player cube: {playerData.Name} | Speed={playerData.MoveSpeed} Accel={playerData.AccelerationSpeed} Decel={playerData.DecelerationSpeed}", LogLevel.Info);
@@ -351,6 +355,10 @@ public partial class MainWindow : Window
                 ConsoleWrite("  log <msg>      - Write to log", "#FF888888");
                 ConsoleWrite("  save           - Save settings", "#FF888888");
                 ConsoleWrite("  reset          - Reset cube to start", "#FF888888");
+                ConsoleWrite("", "#FF888888");
+                ConsoleWrite("Actions:", "#FF00D4FF");
+                ConsoleWrite("  Space / B btn  - Dash 50px in stick/key dir", "#FF888888");
+                ConsoleWrite("  (cube spins 360 during dash, then cooldown)", "#FF888888");
                 break;
 
             case "collision":
@@ -369,9 +377,15 @@ public partial class MainWindow : Window
                 var objs = GameEngine.Instance.ObjectCount;
                 ConsoleWrite($"Game objects: {objs}", "#FF00FF88");
                 if (_blueCube != null)
+                {
                     ConsoleWrite($"  BlueCube pos=({_blueCube.Position.X:F0},{_blueCube.Position.Y:F0}) size={_blueCube.Width} speed={_blueCube.MoveSpeed}", "#FF888888");
+                    var dashState = _blueCube.IsDashing ? "DASHING" : (_blueCube.DashCooldownRemaining > 0 ? $"CD:{_blueCube.DashCooldownRemaining:F1}s" : "Ready");
+                    ConsoleWrite($"  Dash: {dashState} (dist={_blueCube.DashDistance} rot={_blueCube.DashRotationSpeed}cd/s)", "#FF888888");
+                }
                 if (_redCube != null)
                     ConsoleWrite($"  RedCube  pos=({_redCube.Position.X:F0},{_redCube.Position.Y:F0}) size={_redCube.Width}", "#FF888888");
+                if (_greenCube != null)
+                    ConsoleWrite($"  GreenCube pos=({_greenCube.Position.X:F0},{_greenCube.Position.Y:F0}) size={_greenCube.Width}", "#FF888888");
                 break;
 
             case "position":
