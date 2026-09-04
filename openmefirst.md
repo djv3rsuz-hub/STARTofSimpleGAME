@@ -37,11 +37,20 @@ STARTofSimpleWPFGame/
 │   └── InputManager.cs     # Keyboard + mouse state tracking
 ├── Logging/
 │   └── Logger.cs           # File + UI logging
-├── Rendering3D/            # 3D rendering system
+├── Rendering3D/            # True 3D engine
 │   ├── MeshData.cs         # 3D mesh data + Transform3DComponent
 │   ├── MeshFactory.cs      # Primitives: cube/sphere/cylinder/plane/pyramid
 │   ├── Scene3D.cs          # Viewport3D + camera + lighting
-│   └── MeshRenderer.cs     # Singleton managing 3D objects in scene
+│   ├── MeshRenderer.cs     # Singleton managing 3D objects in scene
+│   ├── World3D.cs          # 2D<->3D coord mapping, ground grid, arena
+│   ├── Collision3D.cs      # AABB3D, Sphere3D, Ray3D, swept collision
+│   ├── SpatialHashGrid3D.cs # Spatial hash for broad-phase collision
+│   ├── Hitbox3D.cs         # 3D hitbox system + manager
+│   ├── MeshSync3D.cs       # Sync 2D cubes to 3D meshes + health bars
+│   ├── GameWorld3D.cs      # Orchestrates 3D world + combat sync
+│   ├── FramePerfectTimer.cs # Frame-perfect combat timing
+│   ├── ObjectPool3D.cs     # Object pooling for performance
+│   └── DebugRenderer3D.cs  # Hitbox/bounds/spatial hash visualization
 ├── SaveSystem/             # Save/Load system
 │   ├── SaveData.cs         # Serializable data models
 │   └── SaveManager.cs      # Save/Load/Apply logic
@@ -150,6 +159,26 @@ AttackRecovery = 12
 - Mouse drag = Rotate camera
 - Scroll = Zoom in/out
 
+### Console Commands
+- `3d` - Toggle 3D view
+- `3d hitboxes` - Toggle 3D hitbox visualization
+- `3d bounds` - Toggle 3D AABB bounds
+- `3d grid` - Toggle spatial hash grid
+- `3d reset` - Reset camera to default
+- `3d info` - Show 3D stats
+
+### Architecture
+```
+World3D        - 2D<->3D coordinate mapping, ground grid, arena walls
+Collision3D    - AABB3D, Sphere3D, Ray3D, swept collision detection
+SpatialHash    - Broad-phase collision culling (O(1) lookups)
+Hitbox3D       - Frame-timed 3D hitboxes synced from 2D combat
+MeshSync3D     - Real-time mesh updates, health bars, name plates
+GameWorld3D    - Orchestrates everything, registers cubes
+FramePerfect   - Sub-frame accuracy combat timing
+DebugRenderer  - Visual hitbox/bounds/spatial hash overlay
+```
+
 ### Creating 3D Objects
 ```csharp
 var renderer = MeshRenderer.Instance;
@@ -158,6 +187,22 @@ renderer.AddSphere(0.5, Colors.Red, new Point3D(2, 0, 0));
 renderer.AddCylinder(0.3, 1.5, Colors.Green, new Point3D(-2, 0, 0));
 renderer.AddPlane(5, 5, Colors.Gray, new Point3D(0, -1, 0));
 renderer.AddPyramid(0.8, Colors.Purple, new Point3D(0, 0, 2));
+```
+
+### 3D Collision (AABB3D)
+```csharp
+var box = new AABB3D(center, halfExtents);
+bool hit = box.Intersects(otherBox);
+SweepResult3D sweep = CollisionMath3D.SweepAABB(moving, velocity, stationary, maxTime, out result);
+var closest = CollisionMath3D.ClosestPointOnAABB(point, box);
+```
+
+### Spatial Hash Grid
+```csharp
+var grid = new SpatialHashGrid3D(cellSize: 1.5);
+grid.Rebuild(bodies, worldMin, worldMax);
+var nearby = grid.QueryAABB(queryBox);
+grid.QueryPotentialCollisions(body, results);
 ```
 
 ### Camera Settings (GameSettings.cs)
