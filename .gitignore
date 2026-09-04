@@ -1,0 +1,13 @@
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.nupkg
+*.snupkg
+.vs/
+*.DotSettings.user
+project.lock.json
