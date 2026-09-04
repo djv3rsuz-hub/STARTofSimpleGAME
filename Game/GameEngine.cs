@@ -136,6 +136,14 @@ public sealed class GameEngine
             DamageNumberSystem.Instance.Update(DeltaTime);
             MeshRenderer.Instance.Update(DeltaTime);
 
+            if (GameSettings.Instance.Show3DView && GameWorld3D.Instance.IsInitialized)
+            {
+                var cubes = _gameObjects.OfType<Cube>().ToList();
+                GameWorld3D.Instance.Update(DeltaTime, cubes);
+                foreach (var cube in cubes)
+                    GameWorld3D.Instance.SyncCombatHitboxes(cube, cube.GetHashCode());
+            }
+
             // Combat hit detection
             foreach (var attacker in _gameObjects.OfType<Cube>())
             {
