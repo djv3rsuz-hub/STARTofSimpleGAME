@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -27,6 +28,22 @@ public class GameVisualHost : FrameworkElement
 
 public partial class MainWindow : Window
 {
+    [DllImport("user32.dll")]
+    private static extern int SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+    [DllImport("user32.dll")]
+    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+    [DllImport("user32.dll")]
+    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+    private const int GWL_STYLE = -16;
+    private const int WS_CAPTION = 0x00C00000;
+    private const int WS_THICKFRAME = 0x00040000;
+    private const uint SWP_FRAMECHANGED = 0x0020;
+    private const int TARGET_WIDTH = 1920;
+    private const int TARGET_HEIGHT = 1080;
+
     private GameVisualHost? _gameHost;
     private Cube? _blueCube;
     private Cube? _redCube;
@@ -629,5 +646,36 @@ public partial class MainWindow : Window
         ControllerManager.Instance.Shutdown();
         InputManager.Instance.EndFrame();
         Logger.Shutdown();
+    }
+
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        // Force exact 1920x1080 total window size, centered on screen
+        try
+        {
+            var helper = new System.Windows.Interop.WindowInteropHelper(this);
+            int style = GetWindowLong(helper.Handle, GWL_STYLE);
+            style &= ~(WS_CAPTION | WS_THICKFRAME);
+            SetWindowLong(helper.Handle, GWL_STYLE, style);
+
+            double screenW = SystemParameters.PrimaryScreenWidth;
+            double screenH = SystemParameters.PrimaryScreenHeight;
+            int x = (int)((screenW - TARGET_WIDTH) / 2);
+            int y = (int)((screenH - TARGET_HEIGHT) / 2);
+            SetWindowPos(helper.Handle, IntPtr.Zero, x, y, TARGET_WIDTH, TARGET_HEIGHT, SWP_FRAMECHANGED);
+
+            Logger.Log($"Window: {TARGET_WIDTH}x{TARGET_HEIGHT} centered on screen", LogLevel.Info);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Failed to set exact window size", ex);
+        }
+    }
+
+    private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        // Allow dragging the borderless window
+        if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+            DragMove();
     }
 }
